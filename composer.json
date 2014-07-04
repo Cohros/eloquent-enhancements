@@ -23,7 +23,7 @@
     ],
     "autoload": {
         "psr-0": {
-            "Sigep\\EloquentEnhancements": "src/",
+            "Sigep\\EloquentEnhancements\\": "src/",
             "CakePHP\\Utility\\": "vendor/zzal/cakephp-hash/Hash"
         }
     },
