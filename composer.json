@@ -1,0 +1,31 @@
+{
+    "name": "sigep/eloquent-enhancements",
+    "authors": [
+        {
+            "name": "Luís Henrique",
+            "email": "luish.faria@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/database": "4.1.x",
+        "illuminate/support": "4.1.x",
+        "sigep/support": "dev-master"
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "git@bitbucket.org:sigep/support.git"
+        }, {
+            "type": "vcs",
+            "url": "https://github.com/beeblebrox3/cakephp-hash"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "Sigep\\EloquentEnhancements": "src/",
+            "CakePHP\\Utility\\": "vendor/zzal/cakephp-hash/Hash"
+        }
+    },
+    "minimum-stability": "stable"
+}
