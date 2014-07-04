@@ -10,7 +10,7 @@
         "php": ">=5.4.0",
         "illuminate/database": "4.1.x",
         "illuminate/support": "4.1.x",
-        "sigep/support": "dev-master"
+        "sigep/support": "*"
     },
     "repositories": [
         {
