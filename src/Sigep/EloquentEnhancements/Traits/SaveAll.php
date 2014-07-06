@@ -150,7 +150,7 @@ trait SaveAll
 
         // only BelongsToMany :)
         if (!empty($values['_delete'])) {
-            $this->$relationshipName->detach($values[last(explode('.', $relationship->getOtherKey()))]);
+            $this->$relationshipName()->detach($values[last(explode('.', $relationship->getOtherKey()))]);
             return true;
         }
 
@@ -178,11 +178,15 @@ trait SaveAll
         if ($relationship instanceof HasMany || $relationship instanceof MorphMany) {
             $relationshipObject = $relationship->getRelated();
         } elseif ($relationship instanceof BelongsToMany) {
-            $relationshipObject = $this->relationshipsModels[$relationshipName];
-            if (!is_string($relationshipObject)) {
-                var_dump(get_class($this));
-                dd($relationshipObject);
+            // if has a relationshipModel, use the model. Else, use attach
+            // attach doesn't return nothing
+            if (empty($this->relationshipsModels[$relationshipName])) {
+                $field = last(explode('.', $relationship->getOtherKey()));
+                $this->$relationshipName()->attach($values[$field]);
+                return true;
             }
+
+            $relationshipObject = $this->relationshipsModels[$relationshipName];
             $relationshipObject = new $relationshipObject;
         }
 
