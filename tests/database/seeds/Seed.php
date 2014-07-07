@@ -8,5 +8,7 @@ class Seed extends Seeder
         $this->call('CitySeeder');
         $this->call('RegionSeeder');
         $this->call('PhoneTypeSeeder');
+        $this->call('UsersSeeder');
+        $this->call('PostsSeeder');
     }
 }
