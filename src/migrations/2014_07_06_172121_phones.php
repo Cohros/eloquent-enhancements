@@ -24,10 +24,4 @@ class Phones extends Migration
             $table->timestamps();
         });
     }
-
-    public function down()
-    {
-        Schema::drop('phones');
-        Schema::drop('phones_types');
-    }
 }

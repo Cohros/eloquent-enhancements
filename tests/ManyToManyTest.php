@@ -69,4 +69,19 @@ class ManyToMany extends AbstractTestCase
         $region = Region::find($region->id);
         $this->assertEquals($input['name'], $region->name);
     }
+
+    public function testShouldSaveWithRelationshipModel()
+    {
+        $post = Post::find(1);
+        $input = $post->toArray();
+        $input['authors'] = [
+            ['user_id' => 1, 'main' => 1],
+            ['user_id' => 2, 'main' => 0],
+        ];
+
+        $this->assertTrue($post->saveAll($input));
+
+        $post = Post::find(1);
+        $this->assertEquals(2, count($post->authors));
+    }
 }

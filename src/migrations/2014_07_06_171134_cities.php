@@ -13,9 +13,4 @@ class Cities extends Migration
             $table->timestamps();
         });
     }
-
-    public function down()
-    {
-        Schema::drop('cities');
-    }
 }
