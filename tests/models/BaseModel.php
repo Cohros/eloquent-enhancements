@@ -14,9 +14,6 @@ class BaseModel extends Eloquent
         $validator = Validator::make($data, $this->validation_rules);
         if ($validator->fails()) {
             $this->setErrors($validator->errors());
-            var_dump(get_class($this));
-            var_dump($data);
-            dd($this->errors());
             return false;
         }
 
