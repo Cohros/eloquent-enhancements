@@ -1,0 +1,6 @@
+test:
+    php_code_sniffer:
+        path: "src"
+        ignore:
+            - "src/migrations"
+        standard: "PSR2"
