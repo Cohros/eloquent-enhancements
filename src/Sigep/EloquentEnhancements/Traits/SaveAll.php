@@ -91,7 +91,7 @@ trait SaveAll
     {
         // get info from relationship
         if (!method_exists($this, $relationshipName)) {
-            return false;
+            return true;
         }
 
         $relationship = $this->$relationshipName();
