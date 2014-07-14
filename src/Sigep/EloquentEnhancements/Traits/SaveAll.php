@@ -5,6 +5,7 @@ namespace Sigep\EloquentEnhancements\Traits;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Sigep\Support\ArrayHelper;
 
 trait SaveAll
@@ -129,7 +130,11 @@ trait SaveAll
         }
 
         // get targetModel
-        $model = $relationship->getRelated();
+        if ($relationship instanceof HasManyThrough) {
+            $model = $relationship->getParent();
+        } else {
+            $model = $relationship->getRelated();
+        }
 
         // if has ID, delete or update
         if (!empty($values['id'])) {
@@ -188,6 +193,8 @@ trait SaveAll
 
             $relationshipObject = $this->relationshipsModels[$relationshipName];
             $relationshipObject = new $relationshipObject;
+        } elseif ($relationship instanceof HasManyThrough) {
+            $relationshipObject = $model;
         }
 
         if (!$relationshipObject->createAll($values)) {
