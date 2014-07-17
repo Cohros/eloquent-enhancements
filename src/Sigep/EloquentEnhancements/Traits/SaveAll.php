@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\MessageBag;
 use Sigep\Support\ArrayHelper;
 
 trait SaveAll
@@ -73,10 +74,12 @@ trait SaveAll
         $relationships = $this->getRelationshipsFromData($data);
 
         // save relationships
+        $position = 0;
         foreach ($relationships as $relationship => $values) {
-            if (!$this->addRelated($relationship, $values)) {
+            if (!$this->addRelated($relationship, $values, $position)) {
                 return false;
             }
+            $position++;
         }
 
         return true;
@@ -88,7 +91,7 @@ trait SaveAll
      * @param array $values
      * @return bool
      */
-    public function addRelated($relationshipName, array $values)
+    public function addRelated($relationshipName, array $values, $position)
     {
         // get info from relationship
         if (!method_exists($this, $relationshipName)) {
@@ -100,7 +103,7 @@ trait SaveAll
         // if is a numeric array, recursive calls to add multiple related
         if (!ArrayHelper::isAssociative($values)) {
             foreach ($values as $value) {
-                if (!$this->addRelated($relationshipName, $value)) {
+                if (!$this->addRelated($relationshipName, $value, $position++)) {
                     return false;
                 }
             }
@@ -173,7 +176,17 @@ trait SaveAll
             }
 
             if (!$obj->createAll($values)) {
-                $this->setErrors($obj->errors());
+                $objErrors = $obj->errors()->toArray();
+                $thisErrors = $this->errors();
+                foreach ($objErrors as $field => $errors) {
+                    foreach ($errors as $error ) {
+                        $thisErrors->add(
+                            "{$relationshipName}.{$position}.{$field}",
+                            $error
+                        );
+                    }
+                }
+                $this->setErrors($thisErrors);
                 return false;
             }
 
@@ -198,7 +211,17 @@ trait SaveAll
         }
 
         if (!$relationshipObject->createAll($values)) {
-            $this->setErrors($relationshipObject->errors());
+            $objErrors = $relationshipObject->errors()->toArray();
+            $thisErrors = $this->errors();
+            foreach ($objErrors as $field => $errors) {
+                foreach ($errors as $error ) {
+                    $thisErrors->add(
+                        "{$relationshipName}.{$position}.{$field}",
+                        $error
+                    );
+                }
+            }
+            $this->setErrors($thisErrors);
             return false;
         }
 

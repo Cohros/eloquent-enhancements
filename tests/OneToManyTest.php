@@ -62,4 +62,49 @@ class OneToManyTest extends AbstractTestCase
         $this->assertEquals($input['phones'][1]['number'], $luis->phones[1]->number);
         $this->assertEquals($input['phones'][1]['phone_type_id'], $luis->phones[1]->phone_type_id);
     }
+
+    public function testIgnoringEmptyData()
+    {
+        $input = [
+            'name' => 'Luís Henrique Faria',
+            'email' => 'luish.faria@msn.com',
+            'phones' => [
+                ['number' => '', 'label' => '', 'phone_type_id' => ''],
+                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1],
+            ]
+        ];
+
+        $this->assertTrue(with(new User)->createAll($input));
+        $object = User::whereEmail('luish.faria@msn.com')->with('phones')->first();
+        $this->assertEquals(1, count($object->phones));
+    }
+
+    public function testTransportingErrors()
+    {
+        $input = [
+            'name' => 'Luís Henrique Faria',
+            'email' => 'luish.faria@gmail.com',
+            'phones' => [
+                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1],
+            ]
+        ];
+
+        $object = new User;
+        $testInput = $input;
+        unset($testInput['name']);
+        $this->assertFalse($object->createAll($testInput));
+        $this->assertTrue($object->errors()->has('name'));
+
+        $object = new User;
+        $testInput = $input;
+        $testInput['email'] = 'xxx@gmail.com';
+        unset($testInput['phones'][1]['number']);
+        \DB::beginTransaction();
+        $this->assertFalse($object->createAll($testInput));
+        $this->assertEquals(1, count($object->errors()->has('phones.1.number')));
+        \DB::rollback();
+
+        $this->assertEquals(0, User::whereEmail('xxx@gmail.com')->count());
+    }
 }
