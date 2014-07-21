@@ -6,7 +6,7 @@ This package aims to provide extra functionalities to Laravel's Eloquent. The fu
 ```php
 use Sigep\EloquentEnhancements\Traits\Error
 ```
-This trait add the two methods to your models.
+This trait add two methods to your models.
 
 
 ### setErrors
@@ -20,7 +20,7 @@ Receives a MessageBag and set in `$errors` property. The `SaveAll` uses it to st
 errors()
 ```
 
-Returns errors in `$errors` property. Create a empty MessageBag if errors is not defined.
+Returns errors setted by `setErrors()`. Create a empty MessageBag if errors is not defined.
 
 
 ## SaveAll
@@ -71,8 +71,8 @@ $bob = new User();
 $bob->createAll($input);
 ```
 
-Note that we have a key with the name of the relationship that we create on User model. This is necessary so that SaveAll knows which model are involved and how to save your data.
-If everything is fine, the `createAll` will return true. Else, will return false.
+Note that we have a key with the name of the relationship that we create on User model. This is necessary so SaveAll knows which model are involved and how save your data.
+If everything is fine, `createAll` will return true. Else, will return false.
 
 Now, if you need to edit a number using the User model (when you have a form that shows all data, for example), you can use the `saveAll()` method.
 
@@ -90,7 +90,7 @@ $bob = User::find(1); // assuming bob have the id = 1
 $bob->saveAll($input);
 ```
 
-Now, see that we add the id from the number on the array. This is necessary so that SaveAll knows that is not a new record, but an update.
+Now, see that we add the id from the number on the array. This is necessary so SaveAll knows that is not a new record, but an update.
 
 You do something similar when you need to remove a related model. You just need to pass the `_delete` key:
 
@@ -109,7 +109,7 @@ $bob->saveAll($input);
 
 In this case, the phone `#1`  will be removed. The other properties are not necessary, just the `id` and the `_delete` key.
 
-`SaveAll` can handle BelongsToMany relationships to. You just have to use like the examples above. But that kind of relationship has one particularity. If the pivot table has more columns them just the foreign keys, you can create a Relationship Model to handle the validations (assuming that you are using model observers to do the validation).
+`SaveAll` can handle BelongsToMany relationships to. You just have to use like the examples above. But that kind of relationship has one particularity. If the pivot table has more columns them just the foreign keys, you can create a Relationship Model to handle the validations (assuming that you are using model observers to do the validation like suggested before :) ).
 
 > More examples soon.
 
