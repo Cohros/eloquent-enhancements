@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Mail\Message;
 use Illuminate\Support\MessageBag;
+use Psr\Log\InvalidArgumentException;
 use Sigep\Support\ArrayHelper;
 
 trait SaveAll
@@ -79,12 +80,74 @@ trait SaveAll
         foreach ($relationships as $relationship => $values) {
             $currentPath = $path ? "{$path}." : '';
             $currentPath .= $relationship;
+
+            // dont add more relationships that is allowed
+            $values = $this->applyRelationshipLimit($relationship, $values);
+
             if (!$this->addRelated($relationship, $values, $currentPath)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Get the specified limit for $relationship or false if not exists
+     * @param $relationship name of the relationship
+     * @return mixed
+     */
+    protected function getRelationshipLimit($relationship)
+    {
+        if (isset($this->relationshipsLimits[$relationship])) {
+            return $this->relationshipsLimits[$relationship];
+        }
+
+        return false;
+    }
+
+    /**
+     * Remove values from $values when the relationship limit is reached
+     * @param string $relationship relationship name
+     * @param array $values
+     * @return array modified $values
+     */
+    protected function applyRelationshipLimit($relationship, $values)
+    {
+        $relationshipLimit = $this->getRelationshipLimit($relationship);
+        if (!$relationshipLimit) {
+            return $values;
+        }
+
+        $currentRelationships = count($this->$relationship);
+        $newRelationships = 0;
+        $removeRelationships = [];
+
+        if (ArrayHelper::isAssociative($values)) {
+            return $values;
+        }
+
+        foreach ($values as $key => $value) {
+            if (ArrayHelper::isEmpty($value)) {
+                unset($values[$key]);
+                continue;
+            }
+
+            if (!isset($value['id'])) {
+                $newRelationships++;
+                $removeRelationships[] = $key;
+            }
+        }
+
+        $diff = ($currentRelationships + $newRelationships) - $relationshipLimit;
+        if ($diff) {
+            $removeRelationships = array_slice($removeRelationships, -$diff);
+            foreach ($removeRelationships as $key) {
+                unset($values[$key]);
+            }
+        }
+
+        return array_values($values);
     }
 
     /**

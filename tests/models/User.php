@@ -11,7 +11,11 @@ class User extends BaseModel
 
     protected $validation_rules = [
         'name' => 'required',
-        'email' => 'email|unique:users,email',
+        'email' => 'email',
+    ];
+
+    protected $relationshipsLimits = [
+        'phones' => 2
     ];
 
     public function phones()
