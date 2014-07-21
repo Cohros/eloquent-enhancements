@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Mail\Message;
 use Illuminate\Support\MessageBag;
 use Sigep\Support\ArrayHelper;
 
@@ -39,10 +40,11 @@ trait SaveAll
 
     /**
      * create a new object and calls saveAll() method to save its relationships
-     * @param  array $data
+     * @param array $data
+     * @param string $path used to control where put the error messages
      * @return boolean
      */
-    public function createAll(array $data = [])
+    public function createAll(array $data = [], $path = '')
     {
         $this->fill($data);
 
@@ -52,7 +54,7 @@ trait SaveAll
 
         $data = $this->fillForeignKeyRecursively($data);
 
-        return $this->saveAll($data, true);
+        return $this->saveAll($data, true, $path);
     }
 
     /**
@@ -64,7 +66,7 @@ trait SaveAll
      * @param  boolean $skipUpdate if true, current model will not be changed, just the relationships
      * @return boolean
      */
-    public function saveAll(array $data = [], $skipUpdate = false)
+    public function saveAll(array $data = [], $skipUpdate = false, $path = '')
     {
         $this->fill($data);
         if (!$skipUpdate && !$this->save()) {
@@ -74,12 +76,12 @@ trait SaveAll
         $relationships = $this->getRelationshipsFromData($data);
 
         // save relationships
-        $position = 0;
         foreach ($relationships as $relationship => $values) {
-            if (!$this->addRelated($relationship, $values, $position)) {
+            $currentPath = $path ? "{$path}." : '';
+            $currentPath .= $relationship;
+            if (!$this->addRelated($relationship, $values, $currentPath)) {
                 return false;
             }
-            $position++;
         }
 
         return true;
@@ -91,7 +93,7 @@ trait SaveAll
      * @param array $values
      * @return bool
      */
-    public function addRelated($relationshipName, array $values, $position)
+    public function addRelated($relationshipName, array $values, $path = '')
     {
         // get info from relationship
         if (!method_exists($this, $relationshipName)) {
@@ -102,8 +104,9 @@ trait SaveAll
 
         // if is a numeric array, recursive calls to add multiple related
         if (!ArrayHelper::isAssociative($values)) {
+            $position = 0;
             foreach ($values as $value) {
-                if (!$this->addRelated($relationshipName, $value, $position++)) {
+                if (!$this->addRelated($relationshipName, $value, $path . '.' . $position++)) {
                     return false;
                 }
             }
@@ -118,7 +121,7 @@ trait SaveAll
 
         // set foreign for hasMany relationships
         if ($relationship instanceof HasMany) {
-            $values[$this->getForeignKey()] = $this->id;
+            $values[last(explode('.', $relationship->getForeignKey()))] = $this->id;
         }
 
         // if is MorphToMany, put other foreign and fill the type
@@ -150,6 +153,7 @@ trait SaveAll
             if (!empty($values['_delete'])) {
                 $resultAction = $obj->delete();
             } else {
+                // @todo put errors
                 $resultAction = $obj->saveAll($values);
             }
 
@@ -181,7 +185,7 @@ trait SaveAll
                 foreach ($objErrors as $field => $errors) {
                     foreach ($errors as $error ) {
                         $thisErrors->add(
-                            "{$relationshipName}.{$position}.{$field}",
+                            "{$path}.{$field}",
                             $error
                         );
                     }
@@ -213,10 +217,13 @@ trait SaveAll
         if (!$relationshipObject->createAll($values)) {
             $objErrors = $relationshipObject->errors()->toArray();
             $thisErrors = $this->errors();
+            if (! $thisErrors instanceof MessageBag) {
+                $thisErrors = new MessageBag();
+            }
             foreach ($objErrors as $field => $errors) {
                 foreach ($errors as $error ) {
                     $thisErrors->add(
-                        "{$relationshipName}.{$position}.{$field}",
+                        "{$path}.{$field}",
                         $error
                     );
                 }
