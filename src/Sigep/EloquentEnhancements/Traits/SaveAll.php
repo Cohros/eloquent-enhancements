@@ -123,7 +123,10 @@ trait SaveAll
         $newRelationships = 0;
         $removeRelationships = [];
 
-        if (ArrayHelper::isAssociative($values)) {
+        // check if is associative
+        $arrayKeys = array_keys($values);
+        $arrayKeys = implode('', $arrayKeys);
+        if (ctype_digit($arrayKeys) === false) {
             return $values;
         }
 
@@ -166,7 +169,9 @@ trait SaveAll
         $relationship = $this->$relationshipName();
 
         // if is a numeric array, recursive calls to add multiple related
-        if (!ArrayHelper::isAssociative($values)) {
+        $arrayKeys = array_keys($values);
+        $arrayKeys = implode('', $arrayKeys);
+        if (ctype_digit($arrayKeys) === true) {
             $position = 0;
             foreach ($values as $value) {
                 if (!$this->addRelated($relationshipName, $value, $path . '.' . $position++)) {

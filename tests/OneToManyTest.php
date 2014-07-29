@@ -2,7 +2,6 @@
 
 class OneToManyTest extends AbstractTestCase
 {
-    /**
     public function testCreateOneRecord()
     {
         $luis = [
@@ -107,7 +106,7 @@ class OneToManyTest extends AbstractTestCase
         \DB::rollback();
 
         $this->assertEquals(0, User::whereEmail('xxx@gmail.com')->count());
-    } **/
+    }
 
     public function testShouldApplyLimitOnRelationship()
     {
@@ -135,6 +134,25 @@ class OneToManyTest extends AbstractTestCase
         ];
 
         $this->assertTrue($user->saveAll($input));
+        $user = User::whereEmail('user@domain.tld')->with('phones')->first();
+        $this->assertEquals(2, count($user->phones));
+    }
+
+    public function testShouldSaveRelationshipsWithNonSequentialArrayKeys()
+    {
+        $input = [
+            'name' => 'User User',
+            'email' => 'user@domain.tld',
+            'phones' => [
+                1 => ['number' => '111111', 'label' => 'phone a', 'phone_type_id' => 1],
+                3 => ['number' => '222222', 'label' => 'phone b', 'phone_type_id' => 1],
+                7 => ['number' => '333333', 'label' => 'phone c', 'phone_type_id' => 1],
+                9 => ['number' => '444444', 'label' => 'phone d', 'phone_type_id' => 1],
+            ]
+        ];
+
+        $user = new User;
+        $this->assertTrue($user->createAll($input));
         $user = User::whereEmail('user@domain.tld')->with('phones')->first();
         $this->assertEquals(2, count($user->phones));
     }
