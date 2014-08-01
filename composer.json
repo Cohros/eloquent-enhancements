@@ -9,8 +9,7 @@
     "require": {
         "php": ">=5.4.0",
         "illuminate/database": "4.1.x",
-        "illuminate/support": "4.1.x",
-        "sigep/support": "*"
+        "illuminate/support": "4.1.x"
     },
     "require-dev": {
         "orchestra/testbench": "2.1.*",
@@ -18,22 +17,12 @@
         "apigen/apigen": "2.8.*",
         "nette/nette": "~2.1.3"
     },
-    "repositories": [
-        {
-            "type": "git",
-            "url": "git@bitbucket.org:sigep/support.git"
-        }, {
-            "type": "vcs",
-            "url": "https://github.com/beeblebrox3/cakephp-hash"
-        }
-    ],
     "autoload": {
         "classmap": [
             "src/migrations"
         ],
         "psr-0": {
-            "Sigep\\EloquentEnhancements\\": "src/",
-            "CakePHP\\Utility\\": "vendor/zzal/cakephp-hash/Hash"
+            "Sigep\\EloquentEnhancements\\": "src/"
         }
     },
     "minimum-stability": "stable"

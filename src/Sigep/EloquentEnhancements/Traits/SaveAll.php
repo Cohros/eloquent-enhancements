@@ -6,10 +6,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Mail\Message;
 use Illuminate\Support\MessageBag;
-use Psr\Log\InvalidArgumentException;
-use Sigep\Support\ArrayHelper;
 
 trait SaveAll
 {
@@ -131,7 +128,9 @@ trait SaveAll
         }
 
         foreach ($values as $key => $value) {
-            if (ArrayHelper::isEmpty($value)) {
+            $arrayIsEmpty = array_filter($value);
+            $arrayIsEmpty = empty($arrayIsEmpty);
+            if ($arrayIsEmpty) {
                 unset($values[$key]);
                 continue;
             }
@@ -182,8 +181,10 @@ trait SaveAll
             return true;
         }
 
-        // if has not data, skipp
-        if (ArrayHelper::isEmpty($values)) {
+        // if has not data, skip
+        $arrayIsEmpty = array_filter($values);
+        $arrayIsEmpty = empty($arrayIsEmpty);
+        if ($arrayIsEmpty) {
             return true;
         }
 
