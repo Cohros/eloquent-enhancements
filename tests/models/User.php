@@ -15,7 +15,7 @@ class User extends BaseModel
     ];
 
     protected $relationshipsLimits = [
-        'phones' => 2
+        'phones' => '1:2',
     ];
 
     public function phones()

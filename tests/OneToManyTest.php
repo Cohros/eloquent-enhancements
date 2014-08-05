@@ -2,18 +2,6 @@
 
 class OneToManyTest extends AbstractTestCase
 {
-    public function testCreateOneRecord()
-    {
-        $luis = [
-            'name' => 'Luís Henrique Faria',
-            'email' => 'luish.faria@gmail.com',
-            'password' => '12300',
-            'password_confirmation' => '12300',
-        ];
-
-        $this->assertTrue(with(new User)->createAll($luis));
-    }
-
     public function testCreateWithRelationships()
     {
         $input = [
@@ -24,7 +12,7 @@ class OneToManyTest extends AbstractTestCase
                 ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
             ]
         ];
-
+        
         $this->assertTrue(with(new User)->createAll($input));
         $luis = User::whereEmail('luish.faria@gmail.com')->with('phones')->first();
         $this->assertEquals(2, count($luis->phones));
@@ -122,20 +110,32 @@ class OneToManyTest extends AbstractTestCase
         ];
 
         $user = new User;
-        $this->assertTrue($user->createAll($input));
-        $user = User::whereEmail('user@domain.tld')->with('phones')->first();
-        $this->assertEquals(2, count($user->phones));
-
+        \DB::beginTransaction();
+        $this->assertFalse($user->createAll($input));
+        $this->assertTrue($user->errors()->has('phones'));
+        \DB::rollback();
+        
         $input = [
-            'phones' => [
-                ['number' => 555555, 'label' => 'phone e', 'phone_type_id' => 1],
-                ['id' => $user->phones[0]->id, 'number' => '111111', 'label' => 'phone a', 'phone_type_id' => 1],
-            ]
+            'name' => 'User',
+            'email' => 'user@domain.otld',
+            'phones' => [],
         ];
-
-        $this->assertTrue($user->saveAll($input));
-        $user = User::whereEmail('user@domain.tld')->with('phones')->first();
-        $this->assertEquals(2, count($user->phones));
+        $user = new User;
+        \DB::beginTransaction();
+        $this->assertFalse($user->createAll($input));
+        $this->assertTrue($user->errors()->has('phones'));
+        \DB::rollback();
+        
+        $input = [
+            'name' => 'User',
+            'email' => 'user@domain.otld',
+        ];
+        $user = new User;
+        \DB::beginTransaction();
+        $this->assertFalse($user->createAll($input));
+        $this->assertTrue($user->errors()->has('phones'));
+        \DB::rollback();
+        
     }
 
     public function testShouldSaveRelationshipsWithNonSequentialArrayKeys()
@@ -146,8 +146,6 @@ class OneToManyTest extends AbstractTestCase
             'phones' => [
                 1 => ['number' => '111111', 'label' => 'phone a', 'phone_type_id' => 1],
                 3 => ['number' => '222222', 'label' => 'phone b', 'phone_type_id' => 1],
-                7 => ['number' => '333333', 'label' => 'phone c', 'phone_type_id' => 1],
-                9 => ['number' => '444444', 'label' => 'phone d', 'phone_type_id' => 1],
             ]
         ];
 

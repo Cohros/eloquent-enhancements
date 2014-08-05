@@ -78,10 +78,26 @@ trait SaveAll
             $currentPath = $path ? "{$path}." : '';
             $currentPath .= $relationship;
 
-            // dont add more relationships that is allowed
-            $values = $this->applyRelationshipLimit($relationship, $values);
+            // check allowed amount of related objects
+            if ($this->checkRelationshipLimit($relationship, $values, $currentPath) === false) {
+                return false;
+            }
 
             if (!$this->addRelated($relationship, $values, $currentPath)) {
+                return false;
+            }
+        }
+        
+        // search for relationships that has limit and no data was send, to apply the minimum validation
+        if (isset($this->relationshipsLimits)) {
+            $relationshipsLimits = $this->relationshipsLimits;
+            $checkRelationships = array_diff(array_keys($relationshipsLimits), array_keys($relationships));
+            
+            foreach ($checkRelationships as $checkRelationship) {
+                $currentPath = $path ? "{$path}." : '';
+                $currentPath .= $checkRelationship;
+                
+                $this->checkRelationshipLimit($checkRelationship, [], $currentPath);
                 return false;
             }
         }
@@ -97,19 +113,24 @@ trait SaveAll
     protected function getRelationshipLimit($relationship)
     {
         if (isset($this->relationshipsLimits[$relationship])) {
-            return $this->relationshipsLimits[$relationship];
+            $limit = $this->relationshipsLimits[$relationship];
+            $limit = explode(':', $limit);
+            $limit = array_map('intval', $limit);
+            
+            return $limit;
         }
 
         return false;
     }
 
     /**
-     * Remove values from $values when the relationship limit is reached
+     * Checks if amount of related objects are allowed
      * @param string $relationship relationship name
      * @param array $values
+     * @param string $path
      * @return array modified $values
      */
-    protected function applyRelationshipLimit($relationship, $values)
+    protected function checkRelationshipLimit($relationship, $values, $path)
     {
         $relationshipLimit = $this->getRelationshipLimit($relationship);
         if (!$relationshipLimit) {
@@ -123,8 +144,8 @@ trait SaveAll
         // check if is associative
         $arrayKeys = array_keys($values);
         $arrayKeys = implode('', $arrayKeys);
-        if (ctype_digit($arrayKeys) === false) {
-            return $values;
+        if ($values && ctype_digit($arrayKeys) === false) {
+            return true; // @todo prevent this
         }
 
         foreach ($values as $key => $value) {
@@ -141,15 +162,21 @@ trait SaveAll
             }
         }
 
-        $diff = ($currentRelationships + $newRelationships) - $relationshipLimit;
-        if ($diff) {
-            $removeRelationships = array_slice($removeRelationships, -$diff);
-            foreach ($removeRelationships as $key) {
-                unset($values[$key]);
-            }
+        $this->errors();
+        $sumRelationships = $currentRelationships + $newRelationships;
+        if ($sumRelationships < $relationshipLimit[0]) {
+            $this->errors->add($path, 'validation.min', $relationshipLimit[0]);
         }
-
-        return array_values($values);
+        
+        if ($sumRelationships > $relationshipLimit[1]) {
+            $this->errors->add($path, 'validation.max', $relationshipLimit[1]);
+        }
+        
+        if ($this->errors->has($path)) {
+            return false;
+        }
+        
+        return true;
     }
 
     /**
