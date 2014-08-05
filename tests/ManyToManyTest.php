@@ -91,7 +91,7 @@ class ManyToMany extends AbstractTestCase
             'title' => 'Post x',
             'content' => 'Content x',
             'authors' => [
-                ['user_id' => [1, 2]],
+                'user_id' => [1, 2],
             ]
         ];
 

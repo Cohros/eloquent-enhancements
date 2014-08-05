@@ -163,8 +163,8 @@ trait SaveAll
             return $values;
         }
 
-        if (count($values) === 1 && $this->shouldUseSync($relationship, last($values))) {
-            $sumRelationships = count(last(last($values)));
+        if (count($values) === 1 && $this->shouldUseSync($relationship, $values)) {
+            $sumRelationships = count(last($values));
         } else {
             $this->load($relationship);
             $currentRelationships = $this->$relationship->count();
