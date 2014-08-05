@@ -135,6 +135,21 @@ class OneToManyTest extends AbstractTestCase
         $this->assertFalse($user->createAll($input));
         $this->assertTrue($user->errors()->has('phones'));
         \DB::rollback();
+
+        $input = [
+            'name' => 'User User',
+            'email' => 'user@domain.tld',
+            'phones' => [
+                ['number' => '111111', 'label' => 'phone a', 'phone_type_id' => 1],
+                ['number' => '222222', 'label' => 'phone b', 'phone_type_id' => 1],
+            ]
+        ];
+        $user = new User;
+        \DB::beginTransaction();
+        $this->assertTrue($user->createAll($input));
+        $user->load('phones');
+        $this->assertTrue($user->saveAll($user->toArray()));
+        \DB::commit();
         
     }
 

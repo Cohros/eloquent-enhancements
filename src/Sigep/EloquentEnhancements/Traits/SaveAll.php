@@ -12,11 +12,13 @@ trait SaveAll
 {
     /**
      * Put the id of current object as foreign key in all arrays inside $data
-     * Util when a relationship of a relationship depends of the id from current model
-     * as foreign key to.
-     * To avoid problems, data must to have the foreign key with "auto" value. Just in case
-     * that the records belongs, for any reason, to another object
-     * @param array $data
+     * Util when a relationship of a relationship depends of the id from current
+     * model as foreign key to.
+     * To avoid problems, data must to have the foreign key with "auto" value.
+     * Just in case that the records belongs, for any reason, to another object
+     *
+     * @param array $data changed data
+     *
      * @return array
      */
     private function fillForeignKeyRecursively(array $data)
@@ -37,9 +39,33 @@ trait SaveAll
     }
 
     /**
+     * Determines if sync() should be used to create records on belongsToMany relationships
+     *
+     * @param string $relationship name of relationship
+     * @param array $data data to check
+     *
+     * @return bool
+     */
+    private function shouldUseSync($relationship, $data)
+    {
+        $relationship = $this->$relationship();
+        if ($relationship instanceof BelongsToMany && count($data) === 1) {
+            // check foreign key
+            $foreignKey = last(explode('.', $relationship->getOtherKey()));
+            if (isset($data[$foreignKey]) && is_array($data[$foreignKey])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * create a new object and calls saveAll() method to save its relationships
+     *
      * @param array $data
      * @param string $path used to control where put the error messages
+     *
      * @return boolean
      */
     public function createAll(array $data = [], $path = '')
@@ -61,7 +87,7 @@ trait SaveAll
      * We support relationships from relationships too.
      *
      * @param  array $data
-     * @param  boolean $skipUpdate if true, current model will not be changed, just the relationships
+     * @param  boolean $skipUpdate if true, current model will not be updated
      * @return boolean
      */
     public function saveAll(array $data = [], $skipUpdate = false, $path = '')
@@ -137,33 +163,39 @@ trait SaveAll
             return $values;
         }
 
-        $currentRelationships = count($this->$relationship);
-        $newRelationships = 0;
-        $removeRelationships = [];
+        if (count($values) === 1 && $this->shouldUseSync($relationship, last($values))) {
+            $sumRelationships = count(last(last($values)));
+        } else {
+            $this->load($relationship);
+            $currentRelationships = $this->$relationship->count();
+            $newRelationships = 0;
+            $removeRelationships = [];
 
-        // check if is associative
-        $arrayKeys = array_keys($values);
-        $arrayKeys = implode('', $arrayKeys);
-        if ($values && ctype_digit($arrayKeys) === false) {
-            return true; // @todo prevent this
-        }
-
-        foreach ($values as $key => $value) {
-            $arrayIsEmpty = array_filter($value);
-            $arrayIsEmpty = empty($arrayIsEmpty);
-            if ($arrayIsEmpty) {
-                unset($values[$key]);
-                continue;
+            // check if is associative
+            $arrayKeys = array_keys($values);
+            $arrayKeys = implode('', $arrayKeys);
+            if ($values && ctype_digit($arrayKeys) === false) {
+                return true; // @todo prevent this
             }
 
-            if (!isset($value['id'])) {
-                $newRelationships++;
-                $removeRelationships[] = $key;
+            foreach ($values as $key => $value) {
+                $arrayIsEmpty = array_filter($value);
+                $arrayIsEmpty = empty($arrayIsEmpty);
+                if ($arrayIsEmpty) {
+                    unset($values[$key]);
+                    continue;
+                }
+
+                if (!isset($value['id'])) {
+                    $newRelationships++;
+                    $removeRelationships[] = $key;
+                }
             }
+
+            $sumRelationships = $currentRelationships + $newRelationships;
         }
 
         $this->errors();
-        $sumRelationships = $currentRelationships + $newRelationships;
         if ($sumRelationships < $relationshipLimit[0]) {
             $this->errors->add($path, 'validation.min', $relationshipLimit[0]);
         }
@@ -187,11 +219,6 @@ trait SaveAll
      */
     public function addRelated($relationshipName, array $values, $path = '')
     {
-        // get info from relationship
-        if (!method_exists($this, $relationshipName)) {
-            return true;
-        }
-
         $relationship = $this->$relationshipName();
 
         // if is a numeric array, recursive calls to add multiple related
@@ -212,6 +239,11 @@ trait SaveAll
         $arrayIsEmpty = array_filter($values);
         $arrayIsEmpty = empty($arrayIsEmpty);
         if ($arrayIsEmpty) {
+            return true;
+        }
+
+        if ($this->shouldUseSync($relationshipName, $values)) {
+            $this->$relationshipName()->sync(last($values));
             return true;
         }
 
@@ -242,15 +274,28 @@ trait SaveAll
         if (!empty($values['id'])) {
             $obj = $model->find($values['id']);
             if (!$obj) {
-                return false;
+                return false; // @todo transport error
             }
 
             // delete or update?
             if (!empty($values['_delete'])) {
                 $resultAction = $obj->delete();
             } else {
-                // @todo put errors
+                // @todo transport errors
                 $resultAction = $obj->saveAll($values);
+                if (!$resultAction) {
+                    $objErrors = $obj->errors()->toArray();
+                    $thisErrors = $this->errors();
+                    foreach ($objErrors as $field => $errors) {
+                        foreach ($errors as $error) {
+                            $thisErrors->add(
+                                "{$path}.{$field}",
+                                $error
+                            );
+                        }
+                    }
+                    $this->setErrors($thisErrors);
+                }
             }
 
             return $resultAction;
@@ -279,7 +324,7 @@ trait SaveAll
                 $objErrors = $obj->errors()->toArray();
                 $thisErrors = $this->errors();
                 foreach ($objErrors as $field => $errors) {
-                    foreach ($errors as $error ) {
+                    foreach ($errors as $error) {
                         $thisErrors->add(
                             "{$path}.{$field}",
                             $error
@@ -317,7 +362,7 @@ trait SaveAll
                 $thisErrors = new MessageBag();
             }
             foreach ($objErrors as $field => $errors) {
-                foreach ($errors as $error ) {
+                foreach ($errors as $error) {
                     $thisErrors->add(
                         "{$path}.{$field}",
                         $error
@@ -342,7 +387,7 @@ trait SaveAll
         $relationships = [];
 
         foreach ($data as $key => $value) {
-            if (is_array($value) && !is_numeric($key)) {
+            if (is_array($value) && !is_numeric($key) && method_exists($this, $key)) {
                 $relationships[$key] = $value;
             }
         }

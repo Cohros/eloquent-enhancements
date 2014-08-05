@@ -18,8 +18,12 @@ class Post extends BaseModel
         'authors' => 'PostAuthor',
     ];
 
+    protected $relationshipsLimits = [
+        'authors' => ':3',
+    ];
+
     public function authors()
     {
-        return $this->belongsToMany('User', 'posts_authors', 'post_id', 'user_id');
+        return $this->belongsToMany('User', 'posts_authors', 'post_id', 'user_id')->withTimestamps();
     }
 }

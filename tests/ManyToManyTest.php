@@ -84,4 +84,19 @@ class ManyToMany extends AbstractTestCase
         $post = Post::find(1);
         $this->assertEquals(2, count($post->authors));
     }
+
+    public function testShouldUseSync()
+    {
+        $input = [
+            'title' => 'Post x',
+            'content' => 'Content x',
+            'authors' => [
+                ['user_id' => [1, 2]],
+            ]
+        ];
+
+        $post = new Post;
+        $this->assertTrue($post->createAll($input));
+        $this->assertEquals(2, $post->authors->count());
+    }
 }
