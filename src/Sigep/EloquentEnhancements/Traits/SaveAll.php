@@ -123,8 +123,9 @@ trait SaveAll
                 $currentPath = $path ? "{$path}." : '';
                 $currentPath .= $checkRelationship;
                 
-                $this->checkRelationshipLimit($checkRelationship, [], $currentPath);
-                return false;
+                if (!$this->checkRelationshipLimit($checkRelationship, [], $currentPath)) {
+                    return false;
+                }
             }
         }
 
