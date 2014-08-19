@@ -308,7 +308,11 @@ trait SaveAll
             return true;
         }
 
-        if (!empty($values['_create']) && $relationship instanceof BelongsToMany) {
+        // if (!empty($values['_create']) && $relationship instanceof BelongsToMany) {
+        if ($relationship instanceof BelongsToMany) {
+            $belongsToManyKey = last(explode('.', $relationship->getOtherKey()));
+        }
+        if (isset($belongsToManyKey) && empty($values[$belongsToManyKey]) && $relationship instanceof BelongsToMany) {
             $obj = $relationship->getRelated();
 
             // if has conditions, fill the values)

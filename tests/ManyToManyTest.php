@@ -48,7 +48,7 @@ class ManyToMany extends AbstractTestCase
         $input = [
             'name' => 'São Paulo',
             'cities' => [
-                ['name' => 'Test city', '_create' => true],
+                ['name' => 'Test city'],
             ],
         ];
 
