@@ -169,4 +169,45 @@ class OneToManyTest extends AbstractTestCase
         $user = User::whereEmail('user@domain.tld')->with('phones')->first();
         $this->assertEquals(2, count($user->phones));
     }
+    
+    public function testShouldCreateParent()
+    {
+        $input = [
+            'name' => 'Steve',
+            'email' => 'steve@monster.com',
+            'phones' => array (
+                array (
+                    'number' => '1111111111',
+                    'label' => 'phone x',
+                    'type' => array (
+                        'name' => 'phone type x',
+                    )
+                )
+            ),
+        ];
+        
+        $user = new User;
+        $this->assertTrue($user->createAll($input));
+    }
+    
+    public function testShouldNotCreateIfFailsToCreateBelongsTo()
+    {
+        $input = [
+            'name' => 'Steve',
+            'email' => 'steve@monster.com',
+            'phones' => array (
+                array (
+                    'number' => '1111111111',
+                    'label' => 'phone x',
+                    'type' => array (
+                        'name' => '',
+                    )
+                )
+            ),
+        ];
+        
+        $user = new User;
+        $this->assertFalse($user->createAll($input));
+        $this->assertTrue($user->errors()->has('phones.0.type.name'));
+    }
 }

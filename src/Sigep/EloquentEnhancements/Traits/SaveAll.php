@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Support\MessageBag;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 trait SaveAll
 {
@@ -59,6 +59,43 @@ trait SaveAll
 
         return false;
     }
+    
+    /**
+     * This method is specific to create objects that are related with the current model on a 
+     * belongsTo relationship.
+     * Useful to create a record that belongs to another record that don't exists yet.
+     * This method will remove from $data data relative to belongsTo elements
+     * 
+     * @param array $data
+     * @param string $path
+     * @return array
+     */
+    private function checkBelongsTo($data, $path = '') {
+        $relationships = $this->getRelationshipsFromData($data);
+
+        foreach ($relationships as $relationship => $values) {
+            $relationshipObject = $this->$relationship();
+            
+            if ($relationshipObject instanceof BelongsTo === false) {
+                continue;
+            }
+            
+            $currentPath = $path ? "{$path}." : '';
+            $currentPath .= $relationship;
+            
+            $object = $relationshipObject->getRelated();
+            if (!$object->createAll($values)) {
+                $this->mergeErrors($object->errors()->toArray(), $currentPath);
+            } else {
+                $foreignKey = $relationshipObject->getForeignKey();
+                $this->$foreignKey = $object->id;
+            }
+            
+            unset($data[$relationship]);
+        }
+        
+        return $data;
+    }
 
     /**
      * create a new object and calls saveAll() method to save its relationships
@@ -71,8 +108,9 @@ trait SaveAll
     public function createAll(array $data = [], $path = '')
     {
         $this->fill($data);
+        $data = $this->checkBelongsTo($data, $path);
 
-        if (!$this->save()) {
+        if ($this->errors()->count() || !$this->save()) {
             return false;
         }
 
@@ -93,7 +131,8 @@ trait SaveAll
     public function saveAll(array $data = [], $skipUpdate = false, $path = '')
     {
         $this->fill($data);
-        if (!$skipUpdate && !$this->save()) {
+        $data = $this->checkBelongsTo($data, $path);
+        if ($this->errors()->count() || (!$skipUpdate && !$this->save())) {
             return false;
         }
 
