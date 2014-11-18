@@ -99,4 +99,32 @@ class ManyToMany extends AbstractTestCase
         $this->assertTrue($post->createAll($input));
         $this->assertEquals(2, $post->authors->count());
     }
+
+    public function testShoulSaveBelongsToManyWithRelationshipModel()
+    {
+        $data = [
+            'name' => 'area_x',
+            'cities' => [
+                'city_id' => 1,
+            ]
+        ];
+
+        $area = new Area;
+        $this->assertTrue($area->saveAll($data));
+        $area = Area::with('cities')->find(1);
+        $this->assertEquals(1, $area->cities->first()->id);
+
+        define('xpto', true);
+        $this->assertTrue($area->saveAll([
+            'id' => 1,
+            'name' => 'area_y',
+            'cities' => [
+                'id' => $area->cities->first()->pivot->id,
+                'city_id' => 2,
+                'area_id' => 1,
+            ]
+        ]));
+        $area = Area::with('cities')->find(1);
+        $this->assertEquals(2, $area->cities->first()->id);
+    }
 }

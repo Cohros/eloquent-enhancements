@@ -305,7 +305,7 @@ trait SaveAll
         }
 
         // if has ID, delete or update
-        if (!empty($values['id'])) {
+        if (!empty($values['id']) && $relationship instanceof BelongsToMany === false) {
             $obj = $model->find($values['id']);
             if (!$obj) {
                 return false; // @todo transport error
@@ -363,12 +363,21 @@ trait SaveAll
             }
 
             $relationshipObjectName = $this->relationshipsModels[$relationshipName];
-            $relationshipObject = new $relationshipObjectName;
+
+            if (empty($values['id']) || !is_numeric($values['id'])) {
+                $relationshipObject = new $relationshipObjectName;
+            } else {
+                $relationshipObject = $relationshipObjectName::find($values['id']);
+                if (!$relationshipObject) {
+                    $relationshipObject = new $relationshipObjectName; // @todo check this out
+                }
+            }
         } elseif ($relationship instanceof HasManyThrough) {
             $relationshipObject = $model;
         }
 
-        if (!$relationshipObject->createAll($values)) {
+        $useMethod = (empty($values['id'])) ? 'createAll' : 'saveAll';
+        if (!$relationshipObject->$useMethod($values)) {
             $this->mergeErrors($relationshipObject->errors()->toArray(), $path);
             return false;
         }
