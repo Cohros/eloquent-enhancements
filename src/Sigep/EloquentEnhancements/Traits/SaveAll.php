@@ -51,7 +51,7 @@ trait SaveAll
         $relationship = $this->$relationship();
         if ($relationship instanceof BelongsToMany && count($data) === 1) {
             // check foreign key
-            $foreignKey = end(explode('.', $relationship->getOtherKey()));
+            $foreignKey = last(explode('.', $relationship->getOtherKey()));
             if (isset($data[$foreignKey]) && is_array($data[$foreignKey])) {
                 return true;
             }
@@ -282,7 +282,7 @@ trait SaveAll
 
         // set foreign for hasMany relationships
         if ($relationship instanceof HasMany) {
-            $values[end(explode('.', $relationship->getForeignKey()))] = $this->id;
+            $values[last(explode('.', $relationship->getForeignKey()))] = $this->id;
         }
 
         // if is MorphToMany, put other foreign and fill the type
@@ -293,8 +293,8 @@ trait SaveAll
 
         // if BelongsToMany, put current id in place
         if ($relationship instanceof BelongsToMany) {
-            $values[end(explode('.', $relationship->getForeignKey()))] = $this->id;
-            $belongsToManyOtherKey = end(explode('.', $relationship->getOtherKey()));
+            $values[last(explode('.', $relationship->getForeignKey()))] = $this->id;
+            $belongsToManyOtherKey = last(explode('.', $relationship->getOtherKey()));
         }
 
         // get targetModel
@@ -326,7 +326,7 @@ trait SaveAll
 
         // only BelongsToMany :)
         if (!empty($values['_delete'])) {
-            $this->$relationshipName()->detach($values[end(explode('.', $relationship->getOtherKey()))]);
+            $this->$relationshipName()->detach($values[last(explode('.', $relationship->getOtherKey()))]);
             return true;
         }
 
@@ -337,7 +337,7 @@ trait SaveAll
             // this helps to add fixed values in relationships using its conditions
             // @todo experimental
             foreach ($relationship->getQuery()->getQuery()->wheres as $where) {
-                $column = end(explode('.', $where['column']));
+                $column = last(explode('.', $where['column']));
                 if (!empty($where['value']) && empty($values[$column])) {
                     $values[$column] = $where['value'];
                 }
@@ -357,7 +357,7 @@ trait SaveAll
             // if has a relationshipModel, use the model. Else, use attach
             // attach doesn't return nothing :(
             if (empty($this->relationshipsModels[$relationshipName])) {
-                $field = end(explode('.', $relationship->getOtherKey()));
+                $field = last(explode('.', $relationship->getOtherKey()));
                 $this->$relationshipName()->attach($values[$field]);
                 return true;
             }
