@@ -59,13 +59,13 @@ trait SaveAll
 
         return false;
     }
-    
+
     /**
-     * This method is specific to create objects that are related with the current model on a 
+     * This method is specific to create objects that are related with the current model on a
      * belongsTo relationship.
      * Useful to create a record that belongs to another record that don't exists yet.
      * This method will remove from $data data relative to belongsTo elements
-     * 
+     *
      * @param array $data
      * @param string $path
      * @return array
@@ -75,14 +75,14 @@ trait SaveAll
 
         foreach ($relationships as $relationship => $values) {
             $relationshipObject = $this->$relationship();
-            
+
             if ($relationshipObject instanceof BelongsTo === false) {
                 continue;
             }
-            
+
             $currentPath = $path ? "{$path}." : '';
             $currentPath .= $relationship;
-            
+
             $object = $relationshipObject->getRelated();
             if (!$object->createAll($values)) {
                 $this->mergeErrors($object->errors()->toArray(), $currentPath);
@@ -90,10 +90,10 @@ trait SaveAll
                 $foreignKey = $relationshipObject->getForeignKey();
                 $this->$foreignKey = $object->id;
             }
-            
+
             unset($data[$relationship]);
         }
-        
+
         return $data;
     }
 
@@ -152,16 +152,16 @@ trait SaveAll
                 return false;
             }
         }
-        
+
         // search for relationships that has limit and no data was send, to apply the minimum validation
         if (isset($this->relationshipsLimits)) {
             $relationshipsLimits = $this->relationshipsLimits;
             $checkRelationships = array_diff(array_keys($relationshipsLimits), array_keys($relationships));
-            
+
             foreach ($checkRelationships as $checkRelationship) {
                 $currentPath = $path ? "{$path}." : '';
                 $currentPath .= $checkRelationship;
-                
+
                 if (!$this->checkRelationshipLimit($checkRelationship, [], $currentPath)) {
                     return false;
                 }
@@ -235,15 +235,15 @@ trait SaveAll
         if ($sumRelationships < $relationshipLimit[0]) {
             $this->errors->add($path, 'validation.min', $relationshipLimit[0]);
         }
-        
+
         if ($sumRelationships > $relationshipLimit[1]) {
             $this->errors->add($path, 'validation.max', $relationshipLimit[1]);
         }
-        
+
         if ($this->errors->has($path)) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -315,7 +315,7 @@ trait SaveAll
             if (!empty($values['_delete'])) {
                 return $obj->delete();
             }
-            
+
             if (!$obj->saveAll($values)) {
                 $this->mergeErrors($obj->errors()->toArray(), $path);
                 return true;
@@ -394,10 +394,10 @@ trait SaveAll
 
         return $relationships;
     }
-    
+
     /**
      * Merge $objErrors with $this->errors using $path
-     * 
+     *
      * @param array $objErrors
      * @param type $path
      */
