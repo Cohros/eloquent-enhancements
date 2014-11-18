@@ -1,5 +1,7 @@
 {
     "name": "sigep/eloquent-enhancements",
+    "description": "This package aims to provide extra functionalities to Laravel's Eloquent",
+    "license": "MIT",
     "authors": [
         {
             "name": "Luís Henrique",

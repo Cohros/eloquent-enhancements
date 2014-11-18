@@ -208,7 +208,6 @@ trait SaveAll
             $this->load($relationship);
             $currentRelationships = $this->$relationship->count();
             $newRelationships = 0;
-            $removeRelationships = [];
 
             // check if is associative
             if ($values && ctype_digit(implode('', array_keys($values))) === false) {
@@ -224,7 +223,6 @@ trait SaveAll
 
                 if (!isset($value['id'])) {
                     $newRelationships++;
-                    $removeRelationships[] = $key;
                 }
             }
 

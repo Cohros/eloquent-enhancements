@@ -1,13 +1,14 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 class Phones extends Migration
 {
     public function up()
     {
-        Schema::create('phones', function ($table) {
+        Schema::create('phones', function (Blueprint $table) {
             $table->increments('id');
             $table->string('label', 20);
             $table->string('number', 20);
@@ -18,7 +19,7 @@ class Phones extends Migration
             $table->timestamps();
         });
 
-        Schema::create('phones_types', function ($table) {
+        Schema::create('phones_types', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name', 20);
             $table->timestamps();
