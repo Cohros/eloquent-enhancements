@@ -1,6 +1,6 @@
 <?php
 
-class Region extends BaseModel
+class Region extends AbstractModel
 {
     protected $table = 'regions';
 

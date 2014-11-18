@@ -1,6 +1,6 @@
 <?php
 
-class User extends BaseModel
+class User extends AbstractModel
 {
     protected $table = 'users';
 
@@ -21,5 +21,10 @@ class User extends BaseModel
     public function phones()
     {
         return $this->hasMany('Phone', 'user_id');
+    }
+    
+    public function addresses()
+    {
+        return $this->morphMany('Address', 'addressable');
     }
 }

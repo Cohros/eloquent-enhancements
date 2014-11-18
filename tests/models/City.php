@@ -1,6 +1,6 @@
 <?php
 
-class City extends BaseModel
+class City extends AbstractModel
 {
     protected $table = 'cities';
 

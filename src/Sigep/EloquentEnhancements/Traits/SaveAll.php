@@ -51,7 +51,7 @@ trait SaveAll
         $relationship = $this->$relationship();
         if ($relationship instanceof BelongsToMany && count($data) === 1) {
             // check foreign key
-            $foreignKey = last(explode('.', $relationship->getOtherKey()));
+            $foreignKey = end(explode('.', $relationship->getOtherKey()));
             if (isset($data[$foreignKey]) && is_array($data[$foreignKey])) {
                 return true;
             }
@@ -140,11 +140,10 @@ trait SaveAll
     protected function getRelationshipLimit($relationship)
     {
         if (isset($this->relationshipsLimits[$relationship])) {
-            $limit = $this->relationshipsLimits[$relationship];
-            $limit = explode(':', $limit);
-            $limit = array_map('intval', $limit);
-            
-            return $limit;
+            return array_map (
+                'intval',
+                explode(':', $this->relationshipsLimits[$relationship])
+            );
         }
 
         return false;
@@ -165,7 +164,7 @@ trait SaveAll
         }
 
         if (count($values) === 1 && $this->shouldUseSync($relationship, $values)) {
-            $sumRelationships = count(last($values));
+            $sumRelationships = count(end($values));
         } else {
             $this->load($relationship);
             $currentRelationships = $this->$relationship->count();
@@ -173,16 +172,13 @@ trait SaveAll
             $removeRelationships = [];
 
             // check if is associative
-            $arrayKeys = array_keys($values);
-            $arrayKeys = implode('', $arrayKeys);
-            if ($values && ctype_digit($arrayKeys) === false) {
+            if ($values && ctype_digit(implode('', array_keys($values))) === false) {
                 return true; // @todo prevent this
             }
 
             foreach ($values as $key => $value) {
                 $arrayIsEmpty = array_filter($value);
-                $arrayIsEmpty = empty($arrayIsEmpty);
-                if ($arrayIsEmpty) {
+                if (empty($arrayIsEmpty)) {
                     unset($values[$key]);
                     continue;
                 }
@@ -223,9 +219,7 @@ trait SaveAll
         $relationship = $this->$relationshipName();
 
         // if is a numeric array, recursive calls to add multiple related
-        $arrayKeys = array_keys($values);
-        $arrayKeys = implode('', $arrayKeys);
-        if (ctype_digit($arrayKeys) === true) {
+        if (ctype_digit(implode('', array_keys($values))) === true) {
             $position = 0;
             foreach ($values as $value) {
                 if (!$this->addRelated($relationshipName, $value, $path . '.' . $position++)) {
@@ -238,19 +232,18 @@ trait SaveAll
 
         // if has not data, skip
         $arrayIsEmpty = array_filter($values);
-        $arrayIsEmpty = empty($arrayIsEmpty);
-        if ($arrayIsEmpty) {
+        if (empty($arrayIsEmpty)) {
             return true;
         }
 
         if ($this->shouldUseSync($relationshipName, $values)) {
-            $this->$relationshipName()->sync(last($values));
+            $this->$relationshipName()->sync(end($values));
             return true;
         }
 
         // set foreign for hasMany relationships
         if ($relationship instanceof HasMany) {
-            $values[last(explode('.', $relationship->getForeignKey()))] = $this->id;
+            $values[end(explode('.', $relationship->getForeignKey()))] = $this->id;
         }
 
         // if is MorphToMany, put other foreign and fill the type
@@ -261,7 +254,8 @@ trait SaveAll
 
         // if BelongsToMany, put current id in place
         if ($relationship instanceof BelongsToMany) {
-            $values[last(explode('.', $relationship->getForeignKey()))] = $this->id;
+            $values[end(explode('.', $relationship->getForeignKey()))] = $this->id;
+            $belongsToManyOtherKey = end(explode('.', $relationship->getOtherKey()));
         }
 
         // get targetModel
@@ -280,97 +274,63 @@ trait SaveAll
 
             // delete or update?
             if (!empty($values['_delete'])) {
-                $resultAction = $obj->delete();
-            } else {
-                // @todo transport errors
-                $resultAction = $obj->saveAll($values);
-                if (!$resultAction) {
-                    $objErrors = $obj->errors()->toArray();
-                    $thisErrors = $this->errors();
-                    foreach ($objErrors as $field => $errors) {
-                        foreach ($errors as $error) {
-                            $thisErrors->add(
-                                "{$path}.{$field}",
-                                $error
-                            );
-                        }
-                    }
-                    $this->setErrors($thisErrors);
-                }
+                return $obj->delete();
+            }
+            
+            if (!$obj->saveAll($values)) {
+                $this->mergeErrors($obj->errors()->toArray(), $path);
+                return true;
             }
 
-            return $resultAction;
+            return true;
         }
 
         // only BelongsToMany :)
         if (!empty($values['_delete'])) {
-            $this->$relationshipName()->detach($values[last(explode('.', $relationship->getOtherKey()))]);
+            $this->$relationshipName()->detach($values[end(explode('.', $relationship->getOtherKey()))]);
             return true;
         }
 
-        if (!empty($values['_create']) && $relationship instanceof BelongsToMany) {
+        if (isset($belongsToManyOtherKey) && empty($values[$belongsToManyOtherKey])) {
             $obj = $relationship->getRelated();
 
             // if has conditions, fill the values)
             // this helps to add fixed values in relationships using its conditions
             // @todo experimental
             foreach ($relationship->getQuery()->getQuery()->wheres as $where) {
-                $column = last(explode('.', $where['column']));
+                $column = end(explode('.', $where['column']));
                 if (!empty($where['value']) && empty($values[$column])) {
                     $values[$column] = $where['value'];
                 }
             }
 
             if (!$obj->createAll($values)) {
-                $objErrors = $obj->errors()->toArray();
-                $thisErrors = $this->errors();
-                foreach ($objErrors as $field => $errors) {
-                    foreach ($errors as $error) {
-                        $thisErrors->add(
-                            "{$path}.{$field}",
-                            $error
-                        );
-                    }
-                }
-                $this->setErrors($thisErrors);
+                $this->mergeErrors($obj->errors()->toArray(), $path);
                 return false;
             }
 
-            $values[last(explode('.', $relationship->getOtherKey()))] = $obj->id;
+            $values[$belongsToManyOtherKey] = $obj->id;
         }
 
         if ($relationship instanceof HasMany || $relationship instanceof MorphMany) {
             $relationshipObject = $relationship->getRelated();
         } elseif ($relationship instanceof BelongsToMany) {
             // if has a relationshipModel, use the model. Else, use attach
-            // attach doesn't return nothing
+            // attach doesn't return nothing :(
             if (empty($this->relationshipsModels[$relationshipName])) {
-                $field = last(explode('.', $relationship->getOtherKey()));
+                $field = end(explode('.', $relationship->getOtherKey()));
                 $this->$relationshipName()->attach($values[$field]);
                 return true;
             }
 
-            $relationshipObject = $this->relationshipsModels[$relationshipName];
-            $relationshipObject = new $relationshipObject;
+            $relationshipObjectName = $this->relationshipsModels[$relationshipName];
+            $relationshipObject = new $relationshipObjectName;
         } elseif ($relationship instanceof HasManyThrough) {
             $relationshipObject = $model;
         }
 
         if (!$relationshipObject->createAll($values)) {
-            $objErrors = $relationshipObject->errors()->toArray();
-            $thisErrors = $this->errors();
-            if (! $thisErrors instanceof MessageBag) {
-                $thisErrors = new MessageBag();
-            }
-            foreach ($objErrors as $field => $errors) {
-                foreach ($errors as $error) {
-                    $thisErrors->add(
-                        "{$path}.{$field}",
-                        $error
-                    );
-                }
-            }
-            $this->setErrors($thisErrors);
+            $this->mergeErrors($relationshipObject->errors()->toArray(), $path);
             return false;
         }
 
@@ -394,5 +354,25 @@ trait SaveAll
         }
 
         return $relationships;
+    }
+    
+    /**
+     * Merge $objErrors with $this->errors using $path
+     * 
+     * @param array $objErrors
+     * @param type $path
+     */
+    protected function mergeErrors(array $objErrors, $path)
+    {
+        $thisErrors = $this->errors();
+        foreach ($objErrors as $field => $errors) {
+            foreach ($errors as $error) {
+                $thisErrors->add(
+                    "{$path}.{$field}",
+                    $error
+                );
+            }
+        }
+        $this->setErrors($thisErrors);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-class PostAuthor extends BaseModel
+class PostAuthor extends AbstractModel
 {
     protected $table = 'posts_authors';
 

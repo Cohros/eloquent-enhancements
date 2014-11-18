@@ -1,6 +1,6 @@
 <?php
 
-class Post extends BaseModel
+class Post extends AbstractModel
 {
     protected $table = 'posts';
 

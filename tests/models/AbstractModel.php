@@ -3,7 +3,7 @@
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Support\Facades\Validator as Validator;
 
-class BaseModel extends Eloquent
+abstract class AbstractModel extends Eloquent
 {
     use Sigep\EloquentEnhancements\Traits\Error;
     use Sigep\EloquentEnhancements\Traits\SaveAll;
