@@ -1,6 +1,8 @@
 {
     "name": "sigep/eloquent-enhancements",
+    "type": "library",
     "description": "This package aims to provide extra functionalities to Laravel's Eloquent",
+    "keywords": ["eloquent","laravel"],
     "license": "MIT",
     "authors": [
         {
