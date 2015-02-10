@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\MessageBag;
+
 class ManyToMany extends AbstractTestCase
 {
     public function testAddingRelatedWithoutRelationshipModel()

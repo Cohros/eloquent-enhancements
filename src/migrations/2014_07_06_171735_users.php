@@ -11,7 +11,7 @@ class Users extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name', 60);
-            $table->string('email', 160)->unique();
+            $table->string('email', 160)->nullable();
             $table->timestamps();
         });
     }

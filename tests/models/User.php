@@ -27,4 +27,9 @@ class User extends AbstractModel
     {
         return $this->morphMany('Address', 'addressable');
     }
+
+    public function cars()
+    {
+        return $this->hasMany('Car', 'user_id');
+    }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\MessageBag;
+
 class OneToManyTest extends AbstractTestCase
 {
     public function testCreateWithRelationships()
@@ -209,5 +211,110 @@ class OneToManyTest extends AbstractTestCase
         $user = new User;
         $this->assertFalse($user->createAll($input));
         $this->assertTrue($user->errors()->has('phones.0.type.name'));
+    }
+
+    public function testShouldUseProvidedValidatorCallback()
+    {
+        $input = [
+            'name' => 'Geremias',
+            'email' => 'GEREMIAS@GMAIL.com',
+            'phones' => [
+                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
+            ],
+            'cars' => [
+                ['vendor' => 'Peugeot', 'model' => '207'],
+                ['vendor' => 'Volvo']
+            ]
+        ];
+
+        $user = new User();
+        $save = $user->createAll($input, [
+            'Car' => [
+                'validator' => function ($model) {
+                    $errors = new MessageBag();
+                    if (!$model->vendor) {
+                        $errors->add('vendor', 'required');
+                    }
+                    if (!$model->model) {
+                        $errors->add('model', 'required');
+                    }
+
+                    if ($errors->count()) {
+                        return $errors;
+                    } else {
+                        return true;
+                    }
+                }
+            ],
+        ]);
+
+        $this->assertFalse($save);
+        $this->assertTrue($user->errors()->has('cars.1.model'));
+    }
+
+    public function testShouldUseProvidedGlobalValidatorCallback()
+    {
+        $input = [
+            'name' => 'Geremias',
+            'email' => 'GEREMIAS@GMAIL.com',
+            'phones' => [
+                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
+            ],
+            'cars' => [
+                ['vendor' => 'Peugeot', 'model' => '207'],
+                ['vendor' => 'Volvo']
+            ]
+        ];
+
+        $user = new User();
+        $save = $user->createAll($input, [
+            'validator' => function ($model) {
+                if (get_class($model) !== 'Car') {
+                    return true;
+                }
+
+                $errors = new MessageBag();
+                if (!$model->vendor) {
+                    $errors->add('vendor', 'required');
+                }
+                if (!$model->model) {
+                    $errors->add('model', 'required');
+                }
+
+                if ($errors->count()) {
+                    return $errors;
+                } else {
+                    return true;
+                }
+            }
+        ]);
+
+        $this->assertFalse($save);
+        $this->assertTrue($user->errors()->has('cars.1.model'));
+    }
+
+    public function testFillableOption()
+    {
+        $input = [
+            'name' => 'Geremias',
+            'email' => 'GEREMIAS@GMAIL.com',
+            'phones' => [
+                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
+            ],
+        ];
+
+        $user = new User();
+        $save = $user->createAll($input, [
+            'User' => [
+                'fillable' => ['name']
+            ],
+        ]);
+
+        $this->assertTrue($save);
+        $this->assertEquals($input['name'], $user->name);
+        $this->assertEquals(null, $user->email);
     }
 }
