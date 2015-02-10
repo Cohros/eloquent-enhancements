@@ -2,24 +2,24 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
-class Regions extends Migration
+class CreateAreasTable extends Migration
 {
     public function up()
     {
-        Schema::create('regions', function (Blueprint $table) {
+        Schema::create('areas', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name', 130);
             $table->timestamps();
         });
 
-        Schema::create('regions_cities', function (Blueprint $table) {
+        Schema::create('areas_cities', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('region_id')->unsigned();
-            $table->foreign('region_id')->references('id')->on('regions');
+            $table->integer('area_id')->unsigned();
+            $table->foreign('area_id')->references('id')->on('areas');
             $table->integer('city_id')->unsigned();
             $table->foreign('city_id')->references('id')->on('cities');
+            $table->timestamps();
         });
     }
 }
