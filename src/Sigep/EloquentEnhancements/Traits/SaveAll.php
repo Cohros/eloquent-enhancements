@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 trait SaveAll
 {
     /**
+     * Checks if $options has a callable to do the validation.
+     * If is provided, call the function and merge erros, if any
      * @param array $options
      * @param string $path
      * @return bool
@@ -19,6 +21,7 @@ trait SaveAll
     {
         $modelName = get_class($this);
         $validator = null;
+        $response = true;
 
         if (!empty($options[$modelName]['validator']) && is_callable($options[$modelName]['validator'])) {
             $validator = $options[$modelName]['validator'];
@@ -30,14 +33,16 @@ trait SaveAll
             $isValid = call_user_func($validator, $this);
             if ($isValid !== true) {
                 $this->mergeErrors($isValid->toArray(), $path);
-                return false;
+                $response = false;
             }
         }
 
-        return true;
+        return $response;
     }
 
     /**
+     * Checks if $options has restrictions about what can be filled and
+     * filters $data
      * @param array $options
      * @param array $data
      */
@@ -467,7 +472,7 @@ trait SaveAll
      * Merge $objErrors with $this->errors using $path
      *
      * @param array $objErrors
-     * @param type $path
+     * @param string $path
      */
     protected function mergeErrors(array $objErrors, $path)
     {

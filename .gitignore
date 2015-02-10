@@ -4,7 +4,6 @@ vendor/
 .idea/
 coverage-report/
 api/
-composer.lock
 .buildpath
 .project
 *.swp

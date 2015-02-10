@@ -1,9 +1,8 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\Schema;
 
-class Cars extends Migration
+class CreateCarsTable extends Migration
 {
     public function up()
     {

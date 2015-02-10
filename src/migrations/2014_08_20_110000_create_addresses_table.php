@@ -2,9 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
-class Addresses extends Migration
+class CreateAddressesTable extends Migration
 {
     public function up()
     {
