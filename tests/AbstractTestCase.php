@@ -6,17 +6,21 @@ abstract class AbstractTestCase extends Orchestra\Testbench\TestCase
     {
         parent::setUp();
 
-        $artisan = $this->app->make('artisan');
+        try {
+            $artisan = $this->app->make('artisan');
+        } catch (Exception $ex) {
+            $artisan = $this->app->make('Artisan');
+        }
 
         // migrate packages
         // laravel only run migrations in src folder (dont know why)
         // @todo I want this out of composer.json. How can I do?
-        $artisan->call('migrate', [
+        Artisan::call('migrate', [
             '--path' => '../src/migrations',
             '--database' => 'testbench',
         ]);
 
-        $artisan->call('db:seed', [
+        Artisan::call('db:seed', [
             '--class' => 'Seed',
         ]);
     }
