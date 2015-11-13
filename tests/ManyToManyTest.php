@@ -130,4 +130,50 @@ class ManyToMany extends AbstractTestCase
         $area = Area::with('cities')->find(1);
         $this->assertEquals(2, $area->cities->first()->id);
     }
+
+    public function testShoulSaveBelongsToManyIfRelatedObjectIsProvided()
+    {
+        $data = ['name' => 'Ribeirão'];
+        $city = new City;
+        $this->assertTrue($city->saveAll($data));
+        $city = City::find($city->id);
+
+        $data = ['name' => 'Cravinhos'];
+        $city2 = new City;
+        $this->assertTrue($city2->saveAll($data));
+        $city2 = City::find($city2->id);
+
+        $data = [
+            'name' => 'area_x',
+            'cities' => [
+                $city->toArray(),
+                $city2->toArray(),
+            ]
+        ];
+
+        $area = new Area;
+        $this->assertTrue($area->saveAll($data));
+        $area = Area::with('cities')->find($area->id);
+        $this->assertEquals($area->cities->first()->name, 'Ribeirão');
+
+        $data = ['name' => 'Sertaozinho'];
+        $city = new City;
+        $this->assertTrue($city->saveAll($data));
+        $city = City::find($city->id);
+
+        $data = [
+            'name' => 'area_x_v2',
+            'cities' => [
+                $city->toArray(),
+                $city2->toArray(),
+            ]
+        ];
+
+        $this->assertTrue($area->saveAll($data));
+        $area = Area::with('cities')->find($area->id);
+//        dd($area->toArray());
+        $this->assertEquals($area->cities->first()->name, 'Sertaozinho');
+        $this->assertEquals(2, count($area->cities));
+
+    }
 }

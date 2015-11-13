@@ -125,6 +125,10 @@ trait SaveAll
                 return false;
             }
 
+            if ($this->shouldDetachModels($relationship, $values)) {
+                $this->$relationship()->withTimestamps()->detach();
+            }
+
             if (!$this->addRelated($relationship, $values, $options, $currentPath)) {
                 return false;
             }
@@ -177,13 +181,13 @@ trait SaveAll
     }
 
     /**
-     * Determines if sync() should be used to create records on belongsToMany relationships
-     *
-     * @param string $relationship name of relationship
-     * @param array $data data to check
-     *
-     * @return bool
-     */
+ * Determines if sync() should be used to create records on belongsToMany relationships
+ *
+ * @param string $relationship name of relationship
+ * @param array $data data to check
+ *
+ * @return bool
+ */
     private function shouldUseSync($relationship, $data)
     {
         $relationship = $this->$relationship();
@@ -193,6 +197,29 @@ trait SaveAll
             if (isset($data[$foreignKey]) && is_array($data[$foreignKey])) {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determines if sync() should be used to create records on belongsToMany relationships
+     *
+     * @param string $relationship name of relationship
+     * @param array $data data to check
+     *
+     * @return bool
+     */
+    private function shouldDetachModels($relationship, $data)
+    {
+        $relationship = $this->$relationship();
+        if ($relationship instanceof BelongsToMany && count($data) >= 1 && is_array($data)) {
+            foreach ($data as $element) {
+                if (!is_array($element) || empty($element) || empty($element['id'])) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         return false;
@@ -394,9 +421,9 @@ trait SaveAll
             return true;
         }
 
-        if (isset($belongsToManyOtherKey) && empty($values[$belongsToManyOtherKey])) {
-            $obj = $relationship->getRelated();
 
+        if ((isset($belongsToManyOtherKey) && empty($values[$belongsToManyOtherKey]))) {
+            $obj = $relationship->getRelated();
             // if has conditions, fill the values
             // this helps to add static values in relationships using its conditions
             // @todo experimental
@@ -407,12 +434,14 @@ trait SaveAll
                 }
             }
 
-            if (!$obj->createAll($values, $options)) {
-                $this->mergeErrors($obj->errors()->toArray(), $path);
-                return false;
+            if (empty($values['id'])) {
+                if (!$obj->createAll($values, $options)) {
+                    $this->mergeErrors($obj->errors()->toArray(), $path);
+                    return false;
+                }
+                $values[$belongsToManyOtherKey] = $obj->id;
             }
 
-            $values[$belongsToManyOtherKey] = $obj->id;
         }
 
         if ($relationship instanceof HasMany || $relationship instanceof MorphMany) {
@@ -422,7 +451,9 @@ trait SaveAll
             // attach doesn't return nothing :(
             if (empty($this->relationshipsModels[$relationshipName])) {
                 $field = last(explode('.', $relationship->getOtherKey()));
-                $this->$relationshipName()->attach($values[$field]);
+                if (!$this->$relationshipName->contains($values[$field])) {
+                    $this->$relationshipName()->attach($values[$field]);
+                }
                 return true;
             }
 
@@ -431,7 +462,19 @@ trait SaveAll
             if (empty($values['id']) || !is_numeric($values['id'])) {
                 $relationshipObject = new $relationshipObjectName;
             } else {
-                $relationshipObject = $relationshipObjectName::find($values['id']);
+                if (!empty($values[$belongsToManyOtherKey])) {
+                    $relationshipObject = $relationshipObjectName::find($values['id']);
+                } else {
+                    $relationshipObject = $relationship->getRelated()->find($values['id']);
+
+                    if (!empty($relationshipObject)) {
+                        //if (!$this->$relationshipName->contains($values['id'])) {
+                            $this->$relationshipName()->withTimestamps()->attach($values['id']);
+                        //}
+//                        return true;
+                    }
+                }
+
                 if (!$relationshipObject) {
                     $relationshipObject = new $relationshipObjectName; // @todo check this out
                 }
