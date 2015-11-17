@@ -454,7 +454,8 @@ trait SaveAll
                 if (!isset($values[$field])) {
                     $field = 'id';
                 }
-                if (empty($this->$relationshipName->contains($values[$field]))) {
+                $related = $this->$relationshipName->contains($values[$field]);
+                if (empty($related)) {
                     $this->$relationshipName()->attach($values[$field]);
                 }
 
