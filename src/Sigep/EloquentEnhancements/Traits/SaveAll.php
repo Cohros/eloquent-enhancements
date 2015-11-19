@@ -451,9 +451,14 @@ trait SaveAll
             // attach doesn't return nothing :(
             if (empty($this->relationshipsModels[$relationshipName])) {
                 $field = last(explode('.', $relationship->getOtherKey()));
-                if (!$this->$relationshipName->contains($values[$field])) {
+                if (!isset($values[$field])) {
+                    $field = 'id';
+                }
+                $related = $this->$relationshipName->contains($values[$field]);
+                if (empty($related)) {
                     $this->$relationshipName()->attach($values[$field]);
                 }
+
                 return true;
             }
 
