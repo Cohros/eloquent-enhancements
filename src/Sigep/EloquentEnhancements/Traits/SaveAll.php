@@ -247,13 +247,17 @@ trait SaveAll
 
             $currentPath = $path ? "{$path}." : '';
             $currentPath .= $relationship;
-
-            $object = $relationshipObject->getRelated();
-            if (!$object->createAll($values, $options)) {
-                $this->mergeErrors($object->errors()->toArray(), $currentPath);
+            
+            $foreignKey = $relationshipObject->getForeignKey();
+            if (!empty($values['id'])) {
+                $this->$foreignKey = (int) $values['id'];
             } else {
-                $foreignKey = $relationshipObject->getForeignKey();
-                $this->$foreignKey = $object->id;
+                $object = $relationshipObject->getRelated();
+                if (!$object->createAll($values, $options)) {
+                    $this->mergeErrors($object->errors()->toArray(), $currentPath);
+                } else {
+                    $this->$foreignKey = $object->id;
+                }
             }
 
             unset($data[$relationship]);

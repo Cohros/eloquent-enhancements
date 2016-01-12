@@ -317,4 +317,26 @@ class OneToManyTest extends AbstractTestCase
         $this->assertEquals($input['name'], $user->name);
         $this->assertEquals(null, $user->email);
     }
+    
+    public function testXpto()
+    {
+        $user = User::first();
+        $type = PhoneType::first();
+        $type->name = "galinha";
+        
+        $input = [
+            "label" => "This is a phone",
+            "number" => "111111111111",
+            "user_id" => $user->id,
+            "type" => $type->toArray(),
+        ];
+        
+        $phone = new Phone();
+        $save = $phone->createAll($input);
+        $this->assertTrue($save);
+        $this->assertEquals($input['label'], $phone->label);
+        $this->assertEquals($input['number'], $phone->number);
+        $this->assertEquals($input['label'], $phone->label);
+        $this->assertEquals($type->id, $phone->phone_type_id);
+    }
 }
