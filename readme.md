@@ -1,7 +1,7 @@
 # Eloquent Enhancements
 
-![enter image description here](https://travis-ci.org/Cohros/eloquent-enhancements.svg?branch=master)
-![enter image description here](https://scrutinizer-ci.com/g/Cohros/eloquent-enhancements/badges/quality-score.png?b=master)
+[![Build Status](https://travis-ci.org/Cohros/eloquent-enhancements.svg?branch=master)](https://travis-ci.org/cohros/eloquent-enhancements)
+[![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/Cohros/eloquent-enhancements/master.svg?style=flat-square)](https://scrutinizer-ci.com/g/Cohros/eloquent-enhancements/?branch=master)
 
 This package aims to provide extra functionalities to Laravel's Eloquent. The functionalities, for now, are provided in form of traits, so you don't have to change your models structure.
 

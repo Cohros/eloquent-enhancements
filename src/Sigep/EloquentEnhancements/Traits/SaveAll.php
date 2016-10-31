@@ -2,6 +2,7 @@
 
 namespace Sigep\EloquentEnhancements\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -10,6 +11,27 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 trait SaveAll
 {
+    /**
+     * @see Model::fill
+     * @param array $attributes
+     * @return mixed
+     */
+    abstract function fill(array $attributes);
+
+    /**
+     * @see Model::save
+     * @param array $options
+     * @return mixed
+     */
+    abstract function save(array $options);
+
+    /**
+     * Get the default foreign key name for the model.
+     *
+     * @return string
+     */
+    abstract function getForeignKey();
+
     /**
      * Checks if $options has a callable to do the validation.
      * If is provided, call the function and merge erros, if any
@@ -275,7 +297,7 @@ trait SaveAll
             $removeRelationships = [];
 
             // check if is associative
-            if ($values && ctype_digit(implode('', array_keys($values))) === false) {
+            if ($values && $values !== array_values($values)) {
                 return true; // @todo prevent this
             }
 
