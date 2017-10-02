@@ -2,7 +2,6 @@
 
 namespace Sigep\EloquentEnhancements\Traits;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -11,27 +10,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 trait SaveAll
 {
-    /**
-     * @see Model::fill
-     * @param array $attributes
-     * @return mixed
-     */
-    abstract function fill(array $attributes);
-
-    /**
-     * @see Model::save
-     * @param array $options
-     * @return mixed
-     */
-    abstract function save(array $options);
-
-    /**
-     * Get the default foreign key name for the model.
-     *
-     * @return string
-     */
-    abstract function getForeignKey();
-
     /**
      * Checks if $options has a callable to do the validation.
      * If is provided, call the function and merge erros, if any
@@ -195,8 +173,8 @@ trait SaveAll
             }
         }
 
-        if (isset($data[$foreign]) && $data[$foreign] == 'auto' && $this->id) {
-            $data[$foreign] = $this->id;
+        if (isset($data[$foreign]) && $data[$foreign] == 'auto' && $this->attributes[$this->primaryKey]) {
+            $data[$foreign] = $this->attributes[$this->primaryKey];
         }
 
         return $data;
@@ -269,8 +247,8 @@ trait SaveAll
 
             $currentPath = $path ? "{$path}." : '';
             $currentPath .= $relationship;
-            
-            $foreignKey = $relationshipObject->getForeignKey();
+
+            $foreignKey = $relationshipObject->getQualifiedForeignKeyName();
             if (!empty($values['id'])) {
                 $this->$foreignKey = (int) $values['id'];
             } else {
@@ -328,7 +306,7 @@ trait SaveAll
             $removeRelationships = [];
 
             // check if is associative
-            if ($values && $values !== array_values($values)) {
+            if ($values && ctype_digit(implode('', array_keys($values))) === false) {
                 return true; // @todo prevent this
             }
 
@@ -399,18 +377,18 @@ trait SaveAll
 
         // set foreign for hasMany relationships
         if ($relationship instanceof HasMany) {
-            $values[last(explode('.', $relationship->getForeignKey()))] = $this->id;
+            $values[last(explode('.', $relationship->getQualifiedForeignKeyName()))] = $this->attributes[$this->primaryKey];
         }
 
         // if is MorphToMany, put other foreign and fill the type
         if ($relationship instanceof MorphMany) {
-            $values[$relationship->getPlainForeignKey()] = $this->id;
+            $values[$relationship->getPlainForeignKey()] = $this->attributes[$this->primaryKey];
             $values[$relationship->getPlainMorphType()] = get_class($this);
         }
 
         // if BelongsToMany, put current id in place
         if ($relationship instanceof BelongsToMany) {
-            $values[last(explode('.', $relationship->getForeignKey()))] = $this->id;
+            $values[last(explode('.', $relationship->getQualifiedForeignKeyName()))] = $this->attributes[$this->primaryKey];
             $belongsToManyOtherKey = last(explode('.', $relationship->getOtherKey()));
         }
 
