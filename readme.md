@@ -37,7 +37,7 @@ Consider the following models:
 ```php
 class User extends Eloquent
 {
-    use Sigep\EloquentEnhancements\Traits\Errors;
+    use Sigep\EloquentEnhancements\Traits\Error;
     use Sigep\EloquentEnhancements\Traits\SaveAll;
 
     public function phones()

@@ -15,12 +15,12 @@ abstract class AbstractTestCase extends Orchestra\Testbench\TestCase
         // migrate packages
         // laravel only run migrations in src folder (dont know why)
         // @todo I want this out of composer.json. How can I do?
-        Artisan::call('migrate', [
-            '--path' => '../src/migrations',
+        \Artisan::call('migrate', [
+            '--path' => '../../../../src/migrations',
             '--database' => 'testbench',
         ]);
 
-        Artisan::call('db:seed', [
+        \Artisan::call('db:seed', [
             '--class' => 'Seed',
         ]);
     }
