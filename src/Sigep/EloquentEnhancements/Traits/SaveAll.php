@@ -195,8 +195,8 @@ trait SaveAll
             }
         }
 
-        if (isset($data[$foreign]) && $data[$foreign] == 'auto' && $this->id) {
-            $data[$foreign] = $this->id;
+        if (isset($data[$foreign]) && $data[$foreign] == 'auto' && $this->getKey()) {
+            $data[$foreign] = $this->getKey();
         }
 
         return $data;
@@ -215,7 +215,7 @@ trait SaveAll
         $relationship = $this->$relationship();
         if ($relationship instanceof BelongsToMany && count($data) === 1) {
             // check foreign key
-            $foreignKey = last(explode('.', $relationship->getOtherKey()));
+            $foreignKey = last(explode('.', $relationship->getQualifiedRelatedPivotKeyName()));
             if (isset($data[$foreignKey]) && is_array($data[$foreignKey])) {
                 return true;
             }
@@ -399,19 +399,19 @@ trait SaveAll
 
         // set foreign for hasMany relationships
         if ($relationship instanceof HasMany) {
-            $values[last(explode('.', $relationship->getForeignKey()))] = $this->id;
+            $values[last(explode('.', $relationship->getQualifiedForeignKeyName()))] = $this->getKey();
         }
 
         // if is MorphToMany, put other foreign and fill the type
         if ($relationship instanceof MorphMany) {
-            $values[$relationship->getPlainForeignKey()] = $this->id;
-            $values[$relationship->getPlainMorphType()] = get_class($this);
+            $values[$relationship->getForeignKeyName()] = $this->getKey();
+            $values[$relationship->getMorphType()] = get_class($this);
         }
 
         // if BelongsToMany, put current id in place
         if ($relationship instanceof BelongsToMany) {
-            $values[last(explode('.', $relationship->getForeignKey()))] = $this->id;
-            $belongsToManyOtherKey = last(explode('.', $relationship->getOtherKey()));
+            $values[last(explode('.', $relationship->getQualifiedForeignPivotKeyName()))] = $this->getKey();
+            $belongsToManyOtherKey = last(explode('.', $relationship->getQualifiedRelatedPivotKeyName()));
         }
 
         // get target Model
@@ -443,7 +443,7 @@ trait SaveAll
 
         // only BelongsToMany :)
         if (!empty($values['_delete'])) {
-            $this->$relationshipName()->detach($values[last(explode('.', $relationship->getOtherKey()))]);
+            $this->$relationshipName()->detach($values[last(explode('.', $relationship->getQualifiedRelatedPivotKeyName()))]);
             return true;
         }
 
@@ -476,7 +476,7 @@ trait SaveAll
             // if has a relationshipModel, use the model. Else, use attach
             // attach doesn't return nothing :(
             if (empty($this->relationshipsModels[$relationshipName])) {
-                $field = last(explode('.', $relationship->getOtherKey()));
+                $field = last(explode('.', $relationship->getQualifiedRelatedPivotKeyName()));
                 if (!isset($values[$field])) {
                     $field = 'id';
                 }
