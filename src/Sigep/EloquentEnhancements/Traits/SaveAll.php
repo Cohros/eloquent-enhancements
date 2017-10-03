@@ -23,7 +23,7 @@ trait SaveAll
      * @param array $options
      * @return mixed
      */
-    abstract function save(array $options);
+    abstract function save(array $options = []);
 
     /**
      * Get the default foreign key name for the model.
