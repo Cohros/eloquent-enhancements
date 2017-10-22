@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 trait SaveAll
 {
@@ -254,6 +255,7 @@ trait SaveAll
      * This method will remove from $data data relative to belongsTo elements
      *
      * @param array $data
+     * @param array $options
      * @param string $path
      * @return array
      */
@@ -261,6 +263,7 @@ trait SaveAll
         $relationships = $this->getRelationshipsFromData($data);
 
         foreach ($relationships as $relationship => $values) {
+            /** @var Relation $relationshipObject */
             $relationshipObject = $this->$relationship();
 
             if ($relationshipObject instanceof BelongsTo === false) {
@@ -269,16 +272,18 @@ trait SaveAll
 
             $currentPath = $path ? "{$path}." : '';
             $currentPath .= $relationship;
-            
+
             $foreignKey = $relationshipObject->getForeignKey();
-            if (!empty($values['id'])) {
-                $this->$foreignKey = (int) $values['id'];
+            $keyOtherObject = $relationshipObject->getParent()->getKeyName();
+
+            if (!empty($values[$keyOtherObject])) {
+                $this->$foreignKey = (int) $values[$keyOtherObject];
             } else {
                 $object = $relationshipObject->getRelated();
                 if (!$object->createAll($values, $options)) {
                     $this->mergeErrors($object->errors()->toArray(), $currentPath);
                 } else {
-                    $this->$foreignKey = $object->id;
+                    $this->$foreignKey = $object->getKey();
                 }
             }
 
