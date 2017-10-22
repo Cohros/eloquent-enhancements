@@ -14,7 +14,7 @@ class OneToManyTest extends AbstractTestCase
                 ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
             ]
         ];
-        
+
         $this->assertTrue(with(new User)->createAll($input));
         $luis = User::whereEmail('luish.faria@gmail.com')->with('phones')->first();
         $this->assertEquals(2, count($luis->phones));
@@ -116,7 +116,7 @@ class OneToManyTest extends AbstractTestCase
         $this->assertFalse($user->createAll($input));
         $this->assertTrue($user->errors()->has('phones'));
         \DB::rollback();
-        
+
         $input = [
             'name' => 'User',
             'email' => 'user@domain.otld',
@@ -127,7 +127,7 @@ class OneToManyTest extends AbstractTestCase
         $this->assertFalse($user->createAll($input));
         $this->assertTrue($user->errors()->has('phones'));
         \DB::rollback();
-        
+
         $input = [
             'name' => 'User',
             'email' => 'user@domain.otld',
@@ -152,7 +152,7 @@ class OneToManyTest extends AbstractTestCase
         $user->load('phones');
         $this->assertTrue($user->saveAll($user->toArray()));
         \DB::commit();
-        
+
     }
 
     public function testShouldSaveRelationshipsWithNonSequentialArrayKeys()
@@ -171,7 +171,7 @@ class OneToManyTest extends AbstractTestCase
         $user = User::whereEmail('user@domain.tld')->with('phones')->first();
         $this->assertEquals(2, count($user->phones));
     }
-    
+
     public function testShouldCreateParent()
     {
         $input = [
@@ -187,11 +187,11 @@ class OneToManyTest extends AbstractTestCase
                 )
             ),
         ];
-        
+
         $user = new User;
         $this->assertTrue($user->createAll($input));
     }
-    
+
     public function testShouldNotCreateIfFailsToCreateBelongsTo()
     {
         $input = [
@@ -207,7 +207,7 @@ class OneToManyTest extends AbstractTestCase
                 )
             ),
         ];
-        
+
         $user = new User;
         $this->assertFalse($user->createAll($input));
         $this->assertTrue($user->errors()->has('phones.0.type.name'));
@@ -317,20 +317,20 @@ class OneToManyTest extends AbstractTestCase
         $this->assertEquals($input['name'], $user->name);
         $this->assertEquals(null, $user->email);
     }
-    
+
     public function testXpto()
     {
         $user = User::first();
         $type = PhoneType::first();
         $type->name = "galinha";
-        
+
         $input = [
             "label" => "This is a phone",
             "number" => "111111111111",
             "user_id" => $user->id,
             "type" => $type->toArray(),
         ];
-        
+
         $phone = new Phone();
         $save = $phone->createAll($input);
         $this->assertTrue($save);
