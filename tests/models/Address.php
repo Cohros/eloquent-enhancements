@@ -4,6 +4,8 @@ class Address extends AbstractModel
 {
     protected $table = 'addresses';
 
+    protected $primaryKey = 'id_address';
+
     protected $fillable = [
         'address',
         'postal_code',

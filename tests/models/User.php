@@ -4,6 +4,8 @@ class User extends AbstractModel
 {
     protected $table = 'users';
 
+    protected $primaryKey = 'id_user';
+
     protected $fillable = [
         'name',
         'email',
@@ -20,7 +22,7 @@ class User extends AbstractModel
 
     public function phones()
     {
-        return $this->hasMany('Phone', 'user_id');
+        return $this->hasMany('Phone', 'id_user');
     }
     
     public function addresses()
@@ -30,6 +32,6 @@ class User extends AbstractModel
 
     public function cars()
     {
-        return $this->hasMany('Car', 'user_id');
+        return $this->hasMany('Car', 'id_user');
     }
 }

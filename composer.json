@@ -27,5 +27,10 @@
             "Sigep\\EloquentEnhancements\\": "src/"
         }
     },
+    "autoload-dev": {
+        "classmap": [
+            "tests"
+        ]
+    },
     "minimum-stability": "stable"
 }

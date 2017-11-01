@@ -4,6 +4,8 @@ class City extends AbstractModel
 {
     protected $table = 'cities';
 
+    protected $primaryKey = 'id_city';
+
     protected $fillable = [
         'name',
     ];
@@ -14,6 +16,6 @@ class City extends AbstractModel
 
     public function regions()
     {
-        return $this->belongsToMany('Region', 'regions_cities', 'city_id', 'region_id');
+        return $this->belongsToMany('Region', 'regions_cities', 'id_city', 'id_region');
     }
 }

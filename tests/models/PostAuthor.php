@@ -4,25 +4,27 @@ class PostAuthor extends AbstractModel
 {
     protected $table = 'posts_authors';
 
+    protected $primaryKey = 'id_post_author';
+
     protected $fillable = [
-        'post_id',
-        'user_id',
+        'id_post',
+        'id_user',
         'main',
     ];
 
     protected $validation_rules = [
-        'post_id' => 'required|integer|exists:posts,id',
-        'user_id' => 'required|integer|exists:users,id',
+        'id_post' => 'required|integer|exists:posts,id_post',
+        'id_user' => 'required|integer|exists:users,id_user',
         'main' => 'required|in:0,1',
     ];
 
     public function post()
     {
-        return $this->belongsTo('Post', 'post_id');
+        return $this->belongsTo('Post', 'id_post');
     }
 
     public function user()
     {
-        return $this->belongsTo('User', 'user_id');
+        return $this->belongsTo('User', 'id_user');
     }
 }

@@ -4,23 +4,25 @@ class AreaCity extends AbstractModel
 {
     protected $table = 'areas_cities';
 
+    protected $primaryKey = 'id_area_city';
+
     protected $fillable = [
-        'area_id',
-        'city_id',
+        'id_area',
+        'id_city',
     ];
 
     protected $validation_rules = [
-        'area_id' => 'required|integer|exists:areas,id',
-        'city_id' => 'required|integer|exists:cities,id',
+        'id_area' => 'required|integer|exists:areas,id_area',
+        'id_city' => 'required|integer|exists:cities,id_city',
     ];
 
     public function area()
     {
-        return $this->belongsTo('Area', 'area_id');
+        return $this->belongsTo('Area', 'id_area');
     }
 
     public function city()
     {
-        return $this->belongsTo('City', 'city_id');
+        return $this->belongsTo('City', 'id_city');
     }
 }

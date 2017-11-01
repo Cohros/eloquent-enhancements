@@ -4,6 +4,8 @@ class Post extends AbstractModel
 {
     protected $table = 'posts';
 
+    protected $primaryKey = 'id_post';
+
     protected $fillable = [
         'title',
         'content',
@@ -24,6 +26,6 @@ class Post extends AbstractModel
 
     public function authors()
     {
-        return $this->belongsToMany('User', 'posts_authors', 'post_id', 'user_id')->withTimestamps();
+        return $this->belongsToMany('User', 'posts_authors', 'id_post', 'id_user')->withTimestamps();
     }
 }

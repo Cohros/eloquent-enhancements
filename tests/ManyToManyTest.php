@@ -10,15 +10,15 @@ class ManyToMany extends AbstractTestCase
         $input = [
             'name' => 'São Paulo',
             'cities' => [
-                ['city_id' => City::whereName('São Paulo')->first()->id],
-                ['city_id' => City::whereName('Taboão da Serra')->first()->id],
+                ['id_city' => City::whereName('São Paulo')->first()->id_city],
+                ['id_city' => City::whereName('Taboão da Serra')->first()->id_city],
             ],
         ];
 
         $region = new Region;
         $this->assertTrue($region->createAll($input));
 
-        $region = Region::find($region->id);
+        $region = Region::with('cities')->find($region->id_region);
         $this->assertEquals(2, count($region->cities));
     }
 
@@ -27,12 +27,12 @@ class ManyToMany extends AbstractTestCase
         $data = ['name' => 'Ribeirão'];
         $city = new City;
         $this->assertTrue($city->saveAll($data));
-        $city = City::find($city->id);
+        $city = City::find($city->id_city);
 
         $data = ['name' => 'Cravinhos'];
         $city2 = new City;
         $this->assertTrue($city2->saveAll($data));
-        $city2 = City::find($city2->id);
+        $city2 = City::find($city2->id_city);
 
         $input = [
             'name' => 'region_x',
@@ -46,7 +46,7 @@ class ManyToMany extends AbstractTestCase
         $region = new Region;
         $this->assertTrue($region->createAll($input));
 
-        $region = Region::find($region->id);
+        $region = Region::find($region->id_region);
         $this->assertEquals(3, count($region->cities));
     }
 
@@ -55,22 +55,22 @@ class ManyToMany extends AbstractTestCase
         $input = [
             'name' => 'São Paulo',
             'cities' => [
-                ['city_id' => City::whereName('São Paulo')->first()->id],
-                ['city_id' => City::whereName('Taboão da Serra')->first()->id],
+                ['id_city' => City::whereName('São Paulo')->first()->id_city],
+                ['id_city' => City::whereName('Taboão da Serra')->first()->id_city],
             ],
         ];
 
         $region = new Region;
         $this->assertTrue($region->createAll($input));
 
-        $region = Region::find($region->id);
+        $region = Region::find($region->id_region);
         $this->assertEquals(2, count($region->cities));
 
         $this->assertTrue($region->saveAll(['cities' => [
-            '_delete' => true, 'city_id' => City::whereName('São Paulo')->first()->id]
+            '_delete' => true, 'id_city' => City::whereName('São Paulo')->first()->id_city]
         ]));
 
-        $region = Region::find($region->id);
+        $region = Region::find($region->id_region);
         $this->assertEquals(1, count($region->cities));
     }
 
@@ -86,7 +86,7 @@ class ManyToMany extends AbstractTestCase
         $region = new Region;
         $this->assertTrue($region->createAll($input));
 
-        $region = Region::find($region->id);
+        $region = Region::find($region->id_region);
         $this->assertEquals(1, count($region->cities));
     }
 
@@ -97,7 +97,7 @@ class ManyToMany extends AbstractTestCase
         $this->assertTrue($region->saveAll($input));
         $this->assertFalse($region->saveAll(['name' => '']));
 
-        $region = Region::find($region->id);
+        $region = Region::find($region->id_region);
         $this->assertEquals($input['name'], $region->name);
     }
 
@@ -106,8 +106,8 @@ class ManyToMany extends AbstractTestCase
         $post = Post::find(1);
         $input = $post->toArray();
         $input['authors'] = [
-            ['user_id' => 1, 'main' => 1],
-            ['user_id' => 2, 'main' => 0],
+            ['id_user' => 1, 'main' => 1],
+            ['id_user' => 2, 'main' => 0],
         ];
 
         $this->assertTrue($post->saveAll($input));
@@ -122,7 +122,7 @@ class ManyToMany extends AbstractTestCase
             'title' => 'Post x',
             'content' => 'Content x',
             'authors' => [
-                'user_id' => [1, 2],
+                'id_user' => [1, 2],
             ]
         ];
 
@@ -136,27 +136,27 @@ class ManyToMany extends AbstractTestCase
         $data = [
             'name' => 'area_x',
             'cities' => [
-                'city_id' => 1,
+                'id_city' => 1,
             ]
         ];
 
         $area = new Area;
         $this->assertTrue($area->saveAll($data));
         $area = Area::with('cities')->find(1);
-        $this->assertEquals(1, $area->cities->first()->id);
+        $this->assertEquals(1, $area->cities->first()->id_city);
 
         define('xpto', true);
         $this->assertTrue($area->saveAll([
             'id' => 1,
             'name' => 'area_y',
             'cities' => [
-                'id' => $area->cities->first()->pivot->id,
-                'city_id' => 2,
-                'area_id' => 1,
+                'id_area_city' => $area->cities->first()->pivot->id_area_city,
+                'id_city' => 2,
+                'id_area' => 1,
             ]
         ]));
         $area = Area::with('cities')->find(1);
-        $this->assertEquals(2, $area->cities->first()->id);
+        $this->assertEquals(2, $area->cities->first()->id_city);
     }
 
     public function testShoulSaveBelongsToManyIfRelatedObjectIsProvided()
@@ -164,12 +164,12 @@ class ManyToMany extends AbstractTestCase
         $data = ['name' => 'Ribeirão'];
         $city = new City;
         $this->assertTrue($city->saveAll($data));
-        $city = City::find($city->id);
+        $city = City::find($city->id_city);
 
         $data = ['name' => 'Cravinhos'];
         $city2 = new City;
         $this->assertTrue($city2->saveAll($data));
-        $city2 = City::find($city2->id);
+        $city2 = City::find($city2->id_city);
 
         $data = [
             'name' => 'area_x',
@@ -181,14 +181,15 @@ class ManyToMany extends AbstractTestCase
 
         $area = new Area;
         $this->assertTrue($area->saveAll($data));
-        $area = Area::with('cities')->find($area->id);
+        $area = Area::with('cities')->find($area->id_area);
         $this->assertEquals($area->cities->first()->name, 'Ribeirão');
 
         $data = ['name' => 'Sertaozinho'];
         $city = new City;
         $this->assertTrue($city->saveAll($data));
-        $city = City::find($city->id);
+        $city = City::find($city->id_city);
 
+        $area = new Area;
         $data = [
             'name' => 'area_x_v2',
             'cities' => [
@@ -198,8 +199,7 @@ class ManyToMany extends AbstractTestCase
         ];
 
         $this->assertTrue($area->saveAll($data));
-        $area = Area::with('cities')->find($area->id);
-//        dd($area->toArray());
+        $area = Area::with('cities')->find($area->id_area);
         $this->assertEquals($area->cities->first()->name, 'Sertaozinho');
         $this->assertEquals(2, count($area->cities));
 
