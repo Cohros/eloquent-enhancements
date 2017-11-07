@@ -274,7 +274,7 @@ trait SaveAll
             $currentPath .= $relationship;
 
             $foreignKey = $relationshipObject->getForeignKey();
-            $keyOtherObject = $relationshipObject->getParent()->getKeyName();
+            $keyOtherObject = $relationshipObject->getOwnerKey();
 
             if (!empty($values[$keyOtherObject])) {
                 $this->$foreignKey = (int) $values[$keyOtherObject];
@@ -331,6 +331,7 @@ trait SaveAll
             $currentRelationships = $this->$relationship->count();
             $newRelationships = 0;
             $removeRelationships = [];
+            $relatedObjectKey = $this->$relationship()->getRelated()->getKeyName();
 
             // check if is associative
             if ($values && $values !== array_values($values)) {
@@ -344,7 +345,7 @@ trait SaveAll
                     continue;
                 }
 
-                if (!isset($value['id'])) {
+                if (!isset($value[$relatedObjectKey])) {
                     $newRelationships++;
                     $removeRelationships[] = $key;
                 }
@@ -427,8 +428,8 @@ trait SaveAll
         }
 
         // if has ID, delete or update
-        if (!empty($values['id']) && $relationship instanceof BelongsToMany === false) {
-            $obj = $model->find($values['id']);
+        if (!empty($values[$model->getKeyName()]) && $relationship instanceof BelongsToMany === false) {
+            $obj = $model->find($values[$model->getKeyName()]);
             if (!$obj) {
                 return false; // @todo transport error
             }
@@ -465,12 +466,12 @@ trait SaveAll
                 }
             }
 
-            if (empty($values['id'])) {
+            if (empty($values[$obj->getKeyName()])) {
                 if (!$obj->createAll($values, $options)) {
                     $this->mergeErrors($obj->errors()->toArray(), $path);
                     return false;
                 }
-                $values[$belongsToManyOtherKey] = $obj->id;
+                $values[$belongsToManyOtherKey] = $obj->getKey();
             }
 
         }
@@ -483,31 +484,25 @@ trait SaveAll
             if (empty($this->relationshipsModels[$relationshipName])) {
                 $field = last(explode('.', $relationship->getQualifiedRelatedPivotKeyName()));
                 if (!isset($values[$field])) {
-                    $field = 'id';
+                    $field = 'id'; // default
                 }
-                $related = $this->$relationshipName->contains($values[$field]);
-                if (empty($related)) {
-                    $this->$relationshipName()->attach($values[$field]);
-                }
+                $this->$relationshipName()->attach($values[$field]);
 
                 return true;
             }
 
             $relationshipObjectName = $this->relationshipsModels[$relationshipName];
+            $relationshipObject = new $relationshipObjectName;
+            $relationshipObjectKeyName = $relationshipObject->getKeyName();
 
-            if (empty($values['id']) || !is_numeric($values['id'])) {
-                $relationshipObject = new $relationshipObjectName;
-            } else {
+            if (!empty($values[$relationshipObjectKeyName])) {
                 if (!empty($values[$belongsToManyOtherKey])) {
-                    $relationshipObject = $relationshipObjectName::find($values['id']);
+                    $relationshipObject = $relationshipObjectName::find($values[$relationshipObjectKeyName]);
                 } else {
-                    $relationshipObject = $relationship->getRelated()->find($values['id']);
+                    $relationshipObject = $relationship->getRelated()->find($values[$relationshipObjectKeyName]);
 
                     if (!empty($relationshipObject)) {
-                        //if (!$this->$relationshipName->contains($values['id'])) {
-                            $this->$relationshipName()->withTimestamps()->attach($values['id']);
-                        //}
-//                        return true;
+                        $this->$relationshipName()->withTimestamps()->attach($values[$relationshipObjectKeyName]);
                     }
                 }
 
@@ -519,7 +514,7 @@ trait SaveAll
             $relationshipObject = $model;
         }
 
-        $useMethod = (empty($values['id'])) ? 'createAll' : 'saveAll';
+        $useMethod = (empty($values[$relationshipObject->getKeyName()])) ? 'createAll' : 'saveAll';
         if (!$relationshipObject->$useMethod($values, $options)) {
             $this->mergeErrors($relationshipObject->errors()->toArray(), $path);
             return false;

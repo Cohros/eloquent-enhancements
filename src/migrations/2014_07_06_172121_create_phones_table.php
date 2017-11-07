@@ -7,20 +7,20 @@ class CreatePhonesTable extends Migration
 {
     public function up()
     {
-        Schema::create('phones', function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('label', 20);
-            $table->string('number', 20);
-            $table->integer('phone_type_id')->unsigned();
-            $table->foreign('phone_type_id')->references('id')->on('phones_types');
-            $table->integer('user_id')->unsigned();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        Schema::create('phones_types', function (Blueprint $table) {
+            $table->increments('id_phone_type');
+            $table->string('name', 20);
             $table->timestamps();
         });
 
-        Schema::create('phones_types', function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('name', 20);
+        Schema::create('phones', function (Blueprint $table) {
+            $table->increments('id_phone');
+            $table->string('label', 20);
+            $table->string('number', 20);
+            $table->integer('id_phone_type')->unsigned();
+            $table->foreign('id_phone_type')->references('id_phone_type')->on('phones_types');
+            $table->integer('id_user')->unsigned();
+            $table->foreign('id_user')->references('id_user')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

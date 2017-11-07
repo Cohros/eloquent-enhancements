@@ -10,8 +10,8 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'Luís Henrique Faria',
             'email' => 'luish.faria@gmail.com',
             'phones' => [
-                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
-                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
+                ['number' => '1111111111', 'label' => 'cel', 'id_phone_type' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'id_phone_type' => 1]
             ]
         ];
 
@@ -26,8 +26,8 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'Luís Henrique Faria',
             'email' => 'luish.faria@gmail.com',
             'phones' => [
-                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
-                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
+                ['number' => '1111111111', 'label' => 'cel', 'id_phone_type' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'id_phone_type' => 1]
             ]
         ];
 
@@ -36,12 +36,12 @@ class OneToManyTest extends AbstractTestCase
 
         $input['name'] = 'Luís';
         $input['email'] = 'luque@luque.cc';
-        $input['phones'][0]['id'] = $luis->phones[0]->id;
+        $input['phones'][0]['id_phone'] = $luis->phones[0]->id_phone;
         $input['phones'][0]['number'] = '000000';
 
-        $input['phones'][1]['id'] = $luis->phones[1]->id;
+        $input['phones'][1]['id_phone'] = $luis->phones[1]->id_phone;
         $input['phones'][1]['number'] = '111111';
-        $input['phones'][1]['phone_type_id'] = 2;
+        $input['phones'][1]['id_phone_type'] = 2;
 
         $this->assertTrue($luis->saveAll($input));
 
@@ -50,7 +50,7 @@ class OneToManyTest extends AbstractTestCase
         $this->assertEquals($input['name'], $luis->name);
         $this->assertEquals($input['phones'][0]['number'], $luis->phones[0]->number);
         $this->assertEquals($input['phones'][1]['number'], $luis->phones[1]->number);
-        $this->assertEquals($input['phones'][1]['phone_type_id'], $luis->phones[1]->phone_type_id);
+        $this->assertEquals($input['phones'][1]['id_phone_type'], $luis->phones[1]->id_phone_type);
     }
 
     public function testIgnoringEmptyData()
@@ -59,8 +59,8 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'Luís Henrique Faria',
             'email' => 'luish.faria@msn.com',
             'phones' => [
-                ['number' => '', 'label' => '', 'phone_type_id' => ''],
-                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1],
+                ['number' => '', 'label' => '', 'id_phone_type' => ''],
+                ['number' => '111114441', 'label' => 'cel 2', 'id_phone_type' => 1],
             ]
         ];
 
@@ -75,8 +75,8 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'Luís Henrique Faria',
             'email' => 'luish.faria@gmail.com',
             'phones' => [
-                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
-                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1],
+                ['number' => '1111111111', 'label' => 'cel', 'id_phone_type' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'id_phone_type' => 1],
             ]
         ];
 
@@ -104,10 +104,10 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'User User',
             'email' => 'user@domain.tld',
             'phones' => [
-                ['number' => '111111', 'label' => 'phone a', 'phone_type_id' => 1],
-                ['number' => '222222', 'label' => 'phone b', 'phone_type_id' => 1],
-                ['number' => '333333', 'label' => 'phone c', 'phone_type_id' => 1],
-                ['number' => '444444', 'label' => 'phone d', 'phone_type_id' => 1],
+                ['number' => '111111', 'label' => 'phone a', 'id_phone_type' => 1],
+                ['number' => '222222', 'label' => 'phone b', 'id_phone_type' => 1],
+                ['number' => '333333', 'label' => 'phone c', 'id_phone_type' => 1],
+                ['number' => '444444', 'label' => 'phone d', 'id_phone_type' => 1],
             ]
         ];
 
@@ -142,8 +142,8 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'User User',
             'email' => 'user@domain.tld',
             'phones' => [
-                ['number' => '111111', 'label' => 'phone a', 'phone_type_id' => 1],
-                ['number' => '222222', 'label' => 'phone b', 'phone_type_id' => 1],
+                ['number' => '111111', 'label' => 'phone a', 'id_phone_type' => 1],
+                ['number' => '222222', 'label' => 'phone b', 'id_phone_type' => 1],
             ]
         ];
         $user = new User;
@@ -161,8 +161,8 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'User User',
             'email' => 'user@domain.tld',
             'phones' => [
-                1 => ['number' => '111111', 'label' => 'phone a', 'phone_type_id' => 1],
-                3 => ['number' => '222222', 'label' => 'phone b', 'phone_type_id' => 1],
+                1 => ['number' => '111111', 'label' => 'phone a', 'id_phone_type' => 1],
+                3 => ['number' => '222222', 'label' => 'phone b', 'id_phone_type' => 1],
             ]
         ];
 
@@ -219,8 +219,8 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'Geremias',
             'email' => 'GEREMIAS@GMAIL.com',
             'phones' => [
-                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
-                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
+                ['number' => '1111111111', 'label' => 'cel', 'id_phone_type' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'id_phone_type' => 1]
             ],
             'cars' => [
                 ['vendor' => 'Peugeot', 'model' => '207'],
@@ -259,8 +259,8 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'Geremias',
             'email' => 'GEREMIAS@GMAIL.com',
             'phones' => [
-                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
-                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
+                ['number' => '1111111111', 'label' => 'cel', 'id_phone_type' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'id_phone_type' => 1]
             ],
             'cars' => [
                 ['vendor' => 'Peugeot', 'model' => '207'],
@@ -301,8 +301,8 @@ class OneToManyTest extends AbstractTestCase
             'name' => 'Geremias',
             'email' => 'GEREMIAS@GMAIL.com',
             'phones' => [
-                ['number' => '1111111111', 'label' => 'cel', 'phone_type_id' => 1],
-                ['number' => '111114441', 'label' => 'cel 2', 'phone_type_id' => 1]
+                ['number' => '1111111111', 'label' => 'cel', 'id_phone_type' => 1],
+                ['number' => '111114441', 'label' => 'cel 2', 'id_phone_type' => 1]
             ],
         ];
 
@@ -327,7 +327,7 @@ class OneToManyTest extends AbstractTestCase
         $input = [
             "label" => "This is a phone",
             "number" => "111111111111",
-            "user_id" => $user->id,
+            "id_user" => $user->id_user,
             "type" => $type->toArray(),
         ];
 
@@ -337,6 +337,6 @@ class OneToManyTest extends AbstractTestCase
         $this->assertEquals($input['label'], $phone->label);
         $this->assertEquals($input['number'], $phone->number);
         $this->assertEquals($input['label'], $phone->label);
-        $this->assertEquals($type->id, $phone->phone_type_id);
+        $this->assertEquals($type->id_phone_type, $phone->id_phone_type);
     }
 }

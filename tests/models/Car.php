@@ -4,10 +4,12 @@ class Car extends AbstractModel
 {
     protected $table = 'cars';
 
+    protected $primaryKey = 'id_car';
+
     protected $fillable = [
         'vendor',
         'model',
-        'user_id',
+        'id_user',
     ];
 
     protected $validation_rules = [
@@ -15,6 +17,6 @@ class Car extends AbstractModel
 
     public function user()
     {
-        return $this->belongsTo('User', 'user_id');
+        return $this->belongsTo('User', 'id_user');
     }
 }

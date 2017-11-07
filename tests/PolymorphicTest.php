@@ -8,7 +8,7 @@ class PolymorphicTest extends AbstractTestCase
             'name' => 'Model Person',
             'email' => 'person@gmail.com',
             'phones' => array (
-                ['number' => '111111', 'label' => 'phone a', 'phone_type_id' => 1],
+                ['number' => '111111', 'label' => 'phone a', 'id_phone_type' => 1],
             ),
             'addresses' => array (
                 ['address' => 'Model Address', 'postal_code' => '999999'],

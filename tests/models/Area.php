@@ -4,6 +4,8 @@ class Area extends AbstractModel
 {
     protected $table = 'areas';
 
+    protected $primaryKey = 'id_area';
+
     protected $fillable = [
         'name',
     ];
@@ -18,6 +20,6 @@ class Area extends AbstractModel
 
     public function cities()
     {
-        return $this->belongsToMany('City', 'areas_cities', 'area_id', 'city_id')->withPivot('id');
+        return $this->belongsToMany('City', 'areas_cities', 'id_area', 'id_city')->withPivot('id_area_city');
     }
 }

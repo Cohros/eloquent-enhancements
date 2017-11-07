@@ -4,6 +4,8 @@ class PhoneType extends AbstractModel
 {
     protected $table = 'phones_types';
 
+    protected $primaryKey = 'id_phone_type';
+
     protected $fillable = [
         'name',
     ];
@@ -14,6 +16,6 @@ class PhoneType extends AbstractModel
 
     public function phones()
     {
-        return $this->hasMany('Phone', 'phone_type_id');
+        return $this->hasMany('Phone', 'id_phone_type');
     }
 }
