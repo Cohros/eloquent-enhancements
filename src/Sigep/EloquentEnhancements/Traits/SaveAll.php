@@ -448,7 +448,7 @@ trait SaveAll
         }
 
         // only BelongsToMany :)
-        if (!empty($values['_delete'])) {
+        if (!empty($values['_delete']) && $relationship instanceof BelongsToMany) {
             $this->$relationshipName()->detach($values[last(explode('.', $relationship->getQualifiedRelatedPivotKeyName()))]);
             return true;
         }
