@@ -92,7 +92,7 @@ class OneToManyTest extends AbstractTestCase
         unset($testInput['phones'][1]['number']);
         \DB::beginTransaction();
         $this->assertFalse($object->createAll($testInput));
-        $this->assertEquals(1, count($object->errors()->has('phones.1.number')));
+        $this->assertEquals(1, count($object->errors()->get('phones.1.number')));
         \DB::rollback();
 
         $this->assertEquals(0, User::whereEmail('xxx@gmail.com')->count());
@@ -318,6 +318,7 @@ class OneToManyTest extends AbstractTestCase
         $this->assertEquals(null, $user->email);
     }
 
+    // WTF?!
     public function testXpto()
     {
         $user = User::first();
@@ -338,5 +339,25 @@ class OneToManyTest extends AbstractTestCase
         $this->assertEquals($input['number'], $phone->number);
         $this->assertEquals($input['label'], $phone->label);
         $this->assertEquals($type->id_phone_type, $phone->id_phone_type);
+    }
+
+    public function testShouldIgnoreDeleteWithoutId()
+    {
+        $input = [
+            'name' => 'Geremias',
+            'email' => 'GEREMIAS@GMAIL.com',
+            'phones' => [
+                ['number' => '1111111111', 'label' => 'cel', 'id_phone_type' => 1],
+                ['_delete' => true, 'number' => '111114441', 'label' => 'cel 2', 'id_phone_type' => 1]
+            ],
+        ];
+
+        $user = new User();
+        $save = $user->createAll($input);
+
+        $this->assertTrue($save);
+
+        $user = User::with('phones')->find($user->id_user);
+        $this->assertEquals(1, $user->phones()->count());
     }
 }

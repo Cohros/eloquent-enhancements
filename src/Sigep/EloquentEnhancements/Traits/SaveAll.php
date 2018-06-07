@@ -152,7 +152,7 @@ trait SaveAll
                 $this->$relationship()->withTimestamps()->detach();
             }
 
-            if (!$this->addRelated($relationship, $values, $options, $currentPath)) {
+            if ($this->addRelated($relationship, $values, $options, $currentPath) === false) {
                 return false;
             }
         }
@@ -384,7 +384,7 @@ trait SaveAll
         if (ctype_digit(implode('', array_keys($values))) === true) {
             $position = 0;
             foreach ($values as $value) {
-                if (!$this->addRelated($relationshipName, $value, $options, $path . '.' . $position++)) {
+                if ($this->addRelated($relationshipName, $value, $options, $path . '.' . $position++) === false) {
                     return false;
                 }
             }
@@ -447,8 +447,13 @@ trait SaveAll
             return true;
         }
 
+        if (!empty($values['_delete']) && empty($values[$model->getKeyName()])) {
+            // ignore
+            return null;
+        }
+
         // only BelongsToMany :)
-        if (!empty($values['_delete'])) {
+        if (!empty($values['_delete']) && $relationship instanceof BelongsToMany) {
             $this->$relationshipName()->detach($values[last(explode('.', $relationship->getQualifiedRelatedPivotKeyName()))]);
             return true;
         }
