@@ -356,5 +356,8 @@ class OneToManyTest extends AbstractTestCase
         $save = $user->createAll($input);
 
         $this->assertTrue($save);
+
+        $user = User::with('phones')->find($user->id_user);
+        $this->assertEquals(1, $user->phones()->count());
     }
 }
