@@ -130,7 +130,10 @@ trait SaveAll
         }
 
         if (!$skipUpdate) {
-            if ($this->__handleValidator($options, $path) === false || $this->save() === false) {
+            if ($this->__handleValidator($options, $path) === false) {
+                return false;
+            }
+            if (($this->save() === false) && ($this->isDirty())) {
                 return false;
             }
         }
